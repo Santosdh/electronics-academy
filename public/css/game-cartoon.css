@@ -1,0 +1,451 @@
+/* ==========================================================================
+   game-cartoon.css — cartoon art kit for the "Ohm's Law Shooter" mini-game
+   --------------------------------------------------------------------------
+   Self-contained: no dependency on cyberpunk.css / styles.css. Every class is
+   namespaced .gc-*. Image paths are relative to /css/ → ../img/game/*.svg
+
+   FILES (public/img/game/)
+     volt-idle.svg  volt-shoot.svg  volt-hit.svg  volt-miss.svg   240x280, identical framing
+     target-v.svg (yellow / volts)  target-a.svg (cyan / amps)  target-ohm.svg (magenta / ohms)  140x140
+     bolt.svg        projectile, 64x124, points UP
+     pop-right.svg   lime/cyan starburst + confetti, 200x200
+     pop-wrong.svg   red/violet puff + crack, 200x200
+     heart-full.svg  heart-empty.svg   64x58
+     bg.svg          390x844 portrait city skyline, preserveAspectRatio="xMidYMid slice"
+
+   CLASS API
+     Stage     .gc-stage                 portrait play-field (bg.svg + twinkle + slow parallax).
+                                         Children are absolutely positioned. Add .gc-shake for a one-shot
+                                         screen shake, .gc-flash-wrong for a red vignette flash.
+               .gc-playfield             optional inner layer for targets/bolts (inset:0)
+     HUD       .gc-hud                   top bar (flex). Contains:
+               .gc-lives > .gc-heart     a heart; .is-empty = lost life; .is-lost = plays "lose" anim once
+               .gc-score > small + b     chunky number; add .is-bump to pulse once
+               .gc-streak > .gc-streak-icon + b ("x3")   add .is-bump to pulse; .is-hot (>=5) = flame colours;
+                                         .is-zero dims it
+               .gc-level > small + b     hex level badge; .is-up plays a level-up pop
+     Problem   .gc-problem               big top banner card
+               .gc-problem-tag           small caption ("Find the current")
+               .gc-problem-eq            equation row; inside use
+               .gc-term.gc-v|.gc-a|.gc-ohm   colour chip for a known quantity ("V = 12 V")
+               .gc-ask                   the unknown ("I = ?"), pulses yellow
+     Targets   .gc-target.gc-v|.gc-a|.gc-ohm > span   pure-CSS bubble, value text in the span.
+                                         Position with style="left:..;top:.." (or --x / --y).
+                                         Gentle wobble by default. Add .gc-fall for a fall loop
+                                         (vars --dur, --delay, --fall-to). .is-hit pops it, .is-wrong shakes it.
+               .gc-target-img            same bubble using target-*.svg (<img> or bg) if you prefer art
+     Volt      .gc-volt                  sprite box (240:280). Pose: .is-idle (default) .is-shoot .is-hit .is-miss
+                                         Each pose class swaps the SVG and plays its squash/stretch once
+                                         (idle loops a breathing bob). Bolt spawn point ≈ left:88% top:12%
+                                         of the .gc-volt box (the raised fist in the shoot pose).
+     Bolt      .gc-bolt                  projectile with glow + trail (::after). .gc-fly = flies up once
+                                         (var --fly, default -70vh). .is-static = frozen mid-flight
+     Effects   .gc-pop.gc-pop-right      starburst + ring + confetti, plays once then fades
+               .gc-pop.gc-pop-wrong      puff + ring, plays once then fades
+               .gc-plus                  floating "+10" text (put the text inside); .gc-minus = red variant
+               .gc-shake                 one-shot shake for any element
+     Motion    prefers-reduced-motion: loops stop, one-shots become short fades.
+     Re-trigger a one-shot: remove the class, force reflow (el.offsetWidth), add it again.
+   ========================================================================== */
+@import url("https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Fredoka:wght@500;600;700&display=swap");
+
+:root {
+  --gc-ink: #05060f;
+  --gc-cyan: #00f0ff;
+  --gc-magenta: #ff2bd6;
+  --gc-yellow: #f9f871;
+  --gc-lime: #39ff88;
+  --gc-red: #ff3b5c;
+  --gc-violet: #a259ff;
+  --gc-bg: #0a0b1a;
+  --gc-panel: #10122a;
+  --gc-panel-2: #1b1c40;
+  --gc-font-num: "Baloo 2", "Fredoka", "Orbitron", system-ui, sans-serif;
+  --gc-font-ui: "Fredoka", "Baloo 2", "Rajdhani", system-ui, sans-serif;
+  --gc-outline: 4px;
+  --gc-bounce: cubic-bezier(.34, 1.56, .64, 1);
+}
+
+/* ---------------- STAGE ---------------- */
+.gc-stage {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  height: 100svh;
+  max-height: 900px;
+  margin: 0 auto;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--gc-bg) url("../img/game/bg.svg") center 0 / cover no-repeat;
+  background-size: auto 104%;
+  animation: gc-parallax 28s ease-in-out infinite alternate;
+  font-family: var(--gc-font-ui);
+  color: #fff;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.gc-stage::before { /* twinkle layer */
+  content: ""; position: absolute; inset: 0 0 35% 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(2px 2px at 12% 18%, #fff 60%, transparent 70%),
+    radial-gradient(2px 2px at 78% 9%, var(--gc-cyan) 60%, transparent 70%),
+    radial-gradient(3px 3px at 42% 27%, var(--gc-yellow) 60%, transparent 70%),
+    radial-gradient(2px 2px at 88% 33%, #fff 60%, transparent 70%),
+    radial-gradient(2px 2px at 25% 40%, var(--gc-magenta) 60%, transparent 70%),
+    radial-gradient(2px 2px at 63% 46%, #fff 60%, transparent 70%);
+  animation: gc-twinkle 3.2s ease-in-out infinite alternate;
+}
+.gc-stage::after { /* soft vignette so HUD & targets pop */
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(120% 80% at 50% 45%, transparent 55%, rgba(5,6,15,.55) 100%),
+              linear-gradient(rgba(5,6,15,.45), transparent 22%);
+}
+.gc-stage > * { z-index: 1; }
+.gc-playfield { position: absolute; inset: 0; z-index: 2; }
+@keyframes gc-parallax { from { background-position: 50% 0; } to { background-position: 46% 100%; } }
+@keyframes gc-twinkle { 0% { opacity: .25; } 50% { opacity: 1; } 100% { opacity: .5; } }
+
+.gc-stage.gc-flash-wrong::after { animation: gc-flash-red .5s ease-out 1; }
+@keyframes gc-flash-red {
+  0% { box-shadow: inset 0 0 0 0 rgba(255,59,92,0); }
+  30% { box-shadow: inset 0 0 90px 20px rgba(255,59,92,.65); }
+  100% { box-shadow: inset 0 0 0 0 rgba(255,59,92,0); }
+}
+
+/* ---------------- HUD ---------------- */
+.gc-hud {
+  position: absolute; z-index: 5; top: 10px; left: 10px; right: 10px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.gc-hud-group { display: flex; align-items: center; gap: 8px; }
+.gc-lives {
+  display: flex; gap: 3px; padding: 5px 8px; border-radius: 999px;
+  background: var(--gc-panel); border: var(--gc-outline) solid var(--gc-ink);
+  box-shadow: 0 4px 0 var(--gc-ink), inset 0 2px 0 rgba(255,255,255,.08);
+}
+.gc-heart {
+  display: inline-block; width: 28px; aspect-ratio: 64 / 58;
+  background: url("../img/game/heart-full.svg") center / contain no-repeat;
+  animation: gc-heartbeat 1.8s ease-in-out infinite;
+}
+.gc-heart:nth-child(2) { animation-delay: .15s; }
+.gc-heart:nth-child(3) { animation-delay: .3s; }
+.gc-heart.is-empty { background-image: url("../img/game/heart-empty.svg"); animation: none; }
+.gc-heart.is-lost { background-image: url("../img/game/heart-empty.svg"); animation: gc-heart-lost .6s var(--gc-bounce) 1; }
+@keyframes gc-heartbeat { 0%, 70%, 100% { transform: scale(1); } 80% { transform: scale(1.14, .92); } 90% { transform: scale(.95, 1.06); } }
+@keyframes gc-heart-lost {
+  0% { transform: scale(1.5) rotate(0); filter: brightness(2); }
+  40% { transform: scale(.7, 1.2) rotate(-14deg); }
+  70% { transform: scale(1.1, .9) rotate(8deg); }
+  100% { transform: none; }
+}
+
+.gc-score, .gc-level, .gc-streak {
+  position: relative; display: inline-flex; align-items: center; gap: 4px;
+  background: var(--gc-panel); border: var(--gc-outline) solid var(--gc-ink);
+  box-shadow: 0 4px 0 var(--gc-ink), inset 0 2px 0 rgba(255,255,255,.08);
+  font-family: var(--gc-font-num); line-height: 1;
+}
+.gc-score { flex-direction: column; align-items: flex-end; gap: 0; padding: 3px 12px 2px; border-radius: 14px; min-width: 76px; }
+.gc-score small, .gc-level small {
+  font: 700 10px/1 var(--gc-font-ui); letter-spacing: .14em; text-transform: uppercase; color: #9aa3ff;
+}
+.gc-score b {
+  font-weight: 800; font-size: 26px; color: var(--gc-yellow);
+  -webkit-text-stroke: 1.5px var(--gc-ink); paint-order: stroke fill;
+  text-shadow: 0 3px 0 var(--gc-ink), 0 0 12px rgba(249,248,113,.35);
+  font-variant-numeric: tabular-nums;
+}
+.gc-score.is-bump b, .gc-score.is-bump { animation: gc-bump .45s var(--gc-bounce) 1; }
+
+.gc-streak { padding: 3px 10px 3px 5px; border-radius: 999px; }
+.gc-streak-icon {
+  width: 26px; height: 26px; border-radius: 50%; flex: none;
+  background: var(--gc-magenta) url("../img/game/bolt.svg") center / auto 68% no-repeat;
+  border: 3px solid var(--gc-ink);
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,.25), inset 0 3px 0 rgba(255,255,255,.35);
+}
+.gc-streak b {
+  font-weight: 800; font-size: 22px; color: #fff;
+  -webkit-text-stroke: 1.5px var(--gc-ink); paint-order: stroke fill; text-shadow: 0 2px 0 var(--gc-ink);
+}
+.gc-streak.is-hot .gc-streak-icon {
+  background-color: #ff8a3b;
+  box-shadow: 0 0 0 3px rgba(255,138,59,.35), 0 0 16px #ff8a3b, inset 0 -3px 0 rgba(0,0,0,.25);
+  animation: gc-flame .5s ease-in-out infinite alternate;
+}
+.gc-streak.is-hot b { color: var(--gc-yellow); }
+.gc-streak.is-zero { filter: grayscale(.8) brightness(.8); }
+.gc-streak.is-bump { animation: gc-streak-pulse .55s var(--gc-bounce) 1; }
+.gc-streak.is-bump::after {
+  content: ""; position: absolute; inset: -4px; border-radius: inherit; pointer-events: none;
+  border: 3px solid var(--gc-magenta); animation: gc-ring .55s ease-out 1 forwards;
+}
+@keyframes gc-flame { from { transform: scale(1) rotate(-6deg); } to { transform: scale(1.1, 1.18) rotate(6deg); } }
+@keyframes gc-streak-pulse { 0% { transform: scale(1); } 35% { transform: scale(1.35, .85); } 60% { transform: scale(.9, 1.15); } 100% { transform: scale(1); } }
+@keyframes gc-bump { 0% { transform: scale(1); } 40% { transform: scale(1.25, .85); } 70% { transform: scale(.95, 1.08); } 100% { transform: scale(1); } }
+@keyframes gc-ring { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(1.6); } }
+
+.gc-level {
+  flex-direction: column; justify-content: center; gap: 0; width: 50px; height: 46px; padding-top: 2px;
+  border: 0; box-shadow: none; background: none; filter: drop-shadow(0 4px 0 var(--gc-ink));
+}
+.gc-level::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: var(--gc-ink);
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+}
+.gc-level::after {
+  content: ""; position: absolute; inset: 4px 5px; z-index: -1;
+  background: linear-gradient(var(--gc-violet), #6b2fd1);
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+}
+.gc-level small { color: #e9dcff; font-size: 9px; }
+.gc-level b { font-weight: 800; font-size: 22px; color: #fff; -webkit-text-stroke: 1.5px var(--gc-ink); paint-order: stroke fill; }
+.gc-level.is-up { animation: gc-level-up .8s var(--gc-bounce) 1; }
+@keyframes gc-level-up { 0% { transform: scale(1) rotate(0); } 30% { transform: scale(1.5) rotate(-12deg); } 60% { transform: scale(.9) rotate(8deg); } 100% { transform: none; } }
+
+/* ---------------- PROBLEM BANNER ---------------- */
+.gc-problem {
+  position: absolute; z-index: 5; top: 66px; left: 12px; right: 12px;
+  padding: 8px 12px 12px; text-align: center;
+  background: linear-gradient(180deg, #1d1f4a, var(--gc-panel));
+  border: 5px solid var(--gc-ink); border-radius: 22px;
+  box-shadow: 0 6px 0 var(--gc-ink), inset 0 0 0 3px rgba(0,240,255,.55), inset 0 3px 0 6px rgba(255,255,255,.04), 0 0 30px rgba(0,240,255,.18);
+  animation: gc-banner-in .6s var(--gc-bounce) both;
+}
+.gc-problem-tag {
+  display: inline-block; margin-bottom: 6px; padding: 3px 12px; border-radius: 999px;
+  font: 700 12px/1.2 var(--gc-font-ui); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--gc-ink); background: var(--gc-cyan); border: 3px solid var(--gc-ink);
+  transform: translateY(-16px) rotate(-2deg); margin-bottom: -10px;
+}
+.gc-problem-eq {
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 8px;
+  font: 800 clamp(20px, 5.8vw, 28px)/1.1 var(--gc-font-num);
+}
+.gc-term, .gc-ask {
+  display: inline-flex; align-items: baseline; gap: .2em; white-space: nowrap;
+  padding: 3px 11px 0; border-radius: 14px; border: 3px solid var(--gc-ink);
+  background: #262a5c; box-shadow: 0 3px 0 var(--gc-ink);
+  -webkit-text-stroke: 1px var(--gc-ink); paint-order: stroke fill;
+}
+.gc-term.gc-v { color: var(--gc-yellow); box-shadow: 0 3px 0 var(--gc-ink), inset 0 -3px 0 rgba(249,248,113,.35); }
+.gc-term.gc-a { color: var(--gc-cyan); box-shadow: 0 3px 0 var(--gc-ink), inset 0 -3px 0 rgba(0,240,255,.35); }
+.gc-term.gc-ohm { color: #ff7ae5; box-shadow: 0 3px 0 var(--gc-ink), inset 0 -3px 0 rgba(255,43,214,.35); }
+.gc-ask {
+  color: var(--gc-ink); background: var(--gc-yellow); -webkit-text-stroke: 0;
+  animation: gc-ask 1.2s ease-in-out infinite;
+}
+@keyframes gc-ask { 0%, 100% { transform: scale(1) rotate(-2deg); } 50% { transform: scale(1.08, .95) rotate(2deg); } }
+@keyframes gc-banner-in { from { transform: translateY(-120%) scale(.8); } to { transform: none; } }
+
+/* ---------------- TARGETS (pure CSS) ---------------- */
+.gc-target {
+  --c: var(--gc-yellow); --c-dark: #b9a800; --icon: "\26A1";
+  position: absolute; z-index: 3;
+  left: var(--x, 50%); top: var(--y, 30%);
+  width: var(--size, 92px); aspect-ratio: 1;
+  margin-left: calc(var(--size, 92px) / -2);
+  border-radius: 50% 50% 47% 47% / 52% 52% 48% 48%;
+  background: radial-gradient(circle at 34% 28%, #fff 0 7%, color-mix(in srgb, var(--c) 70%, #fff) 14%, var(--c) 38%, var(--c-dark) 100%);
+  border: 5px solid var(--gc-ink);
+  box-shadow: 0 5px 0 var(--gc-ink), 0 0 22px color-mix(in srgb, var(--c) 45%, transparent);
+  display: grid; place-items: center;
+  animation: gc-wobble 2.4s ease-in-out infinite;
+  animation-delay: var(--wobble-delay, 0s);
+}
+.gc-target.gc-a { --c: var(--gc-cyan); --c-dark: #0089a8; --icon: "A"; }
+.gc-target.gc-ohm { --c: var(--gc-magenta); --c-dark: #a10c83; --icon: "\03A9"; }
+.gc-target.gc-v { --c: var(--gc-yellow); --c-dark: #b9a800; --icon: "V"; }
+.gc-target > span {
+  position: relative; display: grid; place-items: center;
+  width: 78%; height: 62%; border-radius: 50%;
+  background: var(--gc-panel); border: 4px solid var(--gc-ink);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--c) 55%, transparent), inset 0 4px 0 rgba(255,255,255,.06);
+  font: 800 calc(var(--size, 92px) * .26)/1 var(--gc-font-num);
+  color: #fff; white-space: nowrap; letter-spacing: -.01em;
+  text-shadow: 0 2px 0 var(--gc-ink), 0 0 10px color-mix(in srgb, var(--c) 60%, transparent);
+}
+.gc-target::before { /* glossy shine */
+  content: ""; position: absolute; left: 14%; top: 10%; width: 30%; height: 20%;
+  border-top: 5px solid rgba(255,255,255,.9); border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  transform: rotate(-30deg); pointer-events: none;
+}
+.gc-target::after { /* unit tab */
+  content: var(--icon); position: absolute; left: 50%; bottom: -14px; transform: translateX(-50%);
+  min-width: 26px; height: 22px; padding: 0 6px; display: grid; place-items: center;
+  font: 800 14px/1 var(--gc-font-num); color: var(--gc-ink);
+  background: var(--c); border: 3px solid var(--gc-ink); border-radius: 999px;
+}
+.gc-target-img { /* SVG-art variant: <div class="gc-target-img gc-a"><span>2 A</span></div> */
+  position: absolute; z-index: 3; left: var(--x, 50%); top: var(--y, 30%);
+  width: var(--size, 96px); aspect-ratio: 1; margin-left: calc(var(--size, 96px) / -2);
+  display: grid; place-items: center; padding-bottom: 8%;
+  background: url("../img/game/target-v.svg") center / contain no-repeat;
+  animation: gc-wobble 2.4s ease-in-out infinite;
+}
+.gc-target-img.gc-a { background-image: url("../img/game/target-a.svg"); }
+.gc-target-img.gc-ohm { background-image: url("../img/game/target-ohm.svg"); }
+.gc-target-img > span {
+  font: 800 calc(var(--size, 96px) * .24)/1 var(--gc-font-num); color: #fff;
+  text-shadow: 0 2px 0 var(--gc-ink); white-space: nowrap;
+}
+.gc-fall { animation: gc-wobble 2.4s ease-in-out infinite, gc-fall var(--dur, 8s) linear var(--delay, 0s) infinite; }
+.gc-target.is-hit, .gc-target-img.is-hit { animation: gc-target-pop .35s ease-in 1 forwards; }
+.gc-target.is-wrong, .gc-target-img.is-wrong { animation: gc-target-wrong .5s ease-in-out 1; filter: saturate(.4) brightness(.8); }
+@keyframes gc-wobble {
+  0%, 100% { rotate: -5deg; scale: 1 1; }
+  25% { scale: 1.05 .95; }
+  50% { rotate: 5deg; scale: 1 1; }
+  75% { scale: .96 1.04; }
+}
+@keyframes gc-fall { from { translate: 0 -40vh; } to { translate: 0 var(--fall-to, 90vh); } }
+@keyframes gc-target-pop { 0% { scale: 1; opacity: 1; } 40% { scale: 1.35 .7; } 100% { scale: 1.8; opacity: 0; } }
+@keyframes gc-target-wrong { 0%, 100% { translate: 0; } 20% { translate: -10px; } 40% { translate: 9px; } 60% { translate: -6px; } 80% { translate: 4px; } }
+
+/* ---------------- VOLT ---------------- */
+.gc-volt {
+  position: absolute; z-index: 4; left: 50%; bottom: 2%;
+  width: var(--volt-w, 128px); aspect-ratio: 240 / 280; margin-left: calc(var(--volt-w, 128px) / -2);
+  background: url("../img/game/volt-idle.svg") center bottom / contain no-repeat;
+  transform-origin: 50% 95%;
+  animation: gc-volt-breathe 2.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 14px rgba(255,43,214,.35));
+}
+.gc-volt::after { /* preload the other poses so swaps never flicker */
+  content: ""; position: absolute; width: 0; height: 0; overflow: hidden;
+  background: url("../img/game/volt-shoot.svg"), url("../img/game/volt-hit.svg"), url("../img/game/volt-miss.svg");
+}
+.gc-volt.is-idle { background-image: url("../img/game/volt-idle.svg"); }
+.gc-volt.is-shoot { background-image: url("../img/game/volt-shoot.svg"); animation: gc-volt-recoil .35s var(--gc-bounce) 1; }
+.gc-volt.is-hit { background-image: url("../img/game/volt-hit.svg"); animation: gc-volt-jump .7s var(--gc-bounce) 1; }
+.gc-volt.is-miss { background-image: url("../img/game/volt-miss.svg"); animation: gc-volt-dizzy .7s ease-in-out 1; }
+.gc-volt.is-hold { animation: none; } /* freeze on the current pose */
+@keyframes gc-volt-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.03, .97) translateY(1px); } }
+@keyframes gc-volt-recoil { 0% { transform: scale(1.12, .84); } 45% { transform: scale(.94, 1.08); } 100% { transform: none; } }
+@keyframes gc-volt-jump {
+  0% { transform: scale(1.15, .82); }
+  30% { transform: translateY(-22%) scale(.9, 1.12); }
+  60% { transform: translateY(0) scale(1.12, .86); }
+  80% { transform: scale(.96, 1.04); }
+  100% { transform: none; }
+}
+@keyframes gc-volt-dizzy {
+  0%, 100% { transform: none; }
+  20% { transform: rotate(-9deg) scale(1.04, .96); }
+  40% { transform: rotate(7deg); }
+  60% { transform: rotate(-5deg) scale(.97, 1.03); }
+  80% { transform: rotate(3deg); }
+}
+
+/* ---------------- BOLT ---------------- */
+.gc-bolt {
+  position: absolute; z-index: 3; left: var(--x, 50%); top: var(--y, 60%);
+  width: 30px; aspect-ratio: 64 / 124; margin-left: -15px;
+  background: url("../img/game/bolt.svg") center / contain no-repeat;
+  filter: drop-shadow(0 0 8px var(--gc-yellow)) drop-shadow(0 0 18px rgba(249,248,113,.6));
+}
+.gc-bolt::after { /* trail */
+  content: ""; position: absolute; left: 50%; top: 82%; width: 14px; height: 120px; transform: translateX(-50%);
+  background: linear-gradient(to bottom, rgba(255,255,255,.95), rgba(249,248,113,.8) 25%, rgba(0,240,255,.4) 60%, transparent);
+  border-radius: 0 0 50% 50% / 0 0 30% 30%; filter: blur(2px); z-index: -1;
+  clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%);
+}
+.gc-bolt::before { /* sparkle dots along trail */
+  content: ""; position: absolute; left: 50%; top: 100%; width: 40px; height: 90px; transform: translateX(-50%); z-index: -1;
+  background:
+    radial-gradient(3px 3px at 20% 20%, var(--gc-cyan) 60%, transparent 70%),
+    radial-gradient(3px 3px at 80% 40%, #fff 60%, transparent 70%),
+    radial-gradient(2px 2px at 30% 70%, var(--gc-yellow) 60%, transparent 70%),
+    radial-gradient(3px 3px at 70% 90%, var(--gc-magenta) 60%, transparent 70%);
+  animation: gc-trail-flicker .18s steps(2) infinite;
+}
+.gc-bolt.gc-fly { animation: gc-bolt-fly var(--fly-dur, .6s) cubic-bezier(.3,.1,.6,1) 1 forwards; }
+.gc-bolt.is-static { animation: gc-bolt-jitter .2s steps(2) infinite; }
+@keyframes gc-bolt-fly {
+  0% { transform: translateY(0) scale(.6, .4); opacity: 1; }
+  12% { transform: translateY(-4%) scale(.9, 1.3); }
+  100% { transform: translateY(var(--fly, -70vh)) scale(1, 1.15); opacity: 1; }
+}
+@keyframes gc-bolt-jitter { 50% { transform: translateX(1px) scale(1.03, 1.06); } }
+@keyframes gc-trail-flicker { 50% { opacity: .4; transform: translateX(-46%); } }
+
+/* ---------------- EFFECTS ---------------- */
+.gc-pop {
+  position: absolute; z-index: 6; left: var(--x, 50%); top: var(--y, 40%);
+  width: var(--size, 130px); aspect-ratio: 1; margin: calc(var(--size, 130px) / -2) 0 0 calc(var(--size, 130px) / -2);
+  pointer-events: none; background: center / contain no-repeat;
+}
+.gc-pop::before, .gc-pop::after { content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none; }
+.gc-pop-right { background-image: url("../img/game/pop-right.svg"); animation: gc-pop-right .75s var(--gc-bounce) 1 forwards; }
+.gc-pop-right::before { border: 6px solid var(--gc-lime); box-shadow: 0 0 0 4px var(--gc-ink), 0 0 20px var(--gc-cyan); animation: gc-burst-ring .6s ease-out 1 forwards; }
+.gc-pop-right::after { /* confetti dots flying out */
+  background:
+    radial-gradient(circle at 50% 4%, var(--gc-yellow) 0 4%, transparent 5%),
+    radial-gradient(circle at 92% 30%, var(--gc-cyan) 0 4%, transparent 5%),
+    radial-gradient(circle at 86% 82%, var(--gc-magenta) 0 4%, transparent 5%),
+    radial-gradient(circle at 14% 84%, var(--gc-lime) 0 4%, transparent 5%),
+    radial-gradient(circle at 6% 28%, var(--gc-violet) 0 4%, transparent 5%);
+  animation: gc-confetti .75s ease-out 1 forwards;
+}
+.gc-pop-wrong { background-image: url("../img/game/pop-wrong.svg"); animation: gc-pop-wrong .8s ease-out 1 forwards; }
+.gc-pop-wrong::before { border: 6px solid var(--gc-red); box-shadow: 0 0 0 4px var(--gc-ink), 0 0 20px var(--gc-violet); animation: gc-burst-ring .5s ease-out 1 forwards; }
+.gc-pop-wrong::after { background: radial-gradient(circle, rgba(162,89,255,.55), transparent 60%); animation: gc-puff .8s ease-out 1 forwards; }
+.gc-pop.is-hold { animation: none; } .gc-pop.is-hold::before, .gc-pop.is-hold::after { display: none; }
+@keyframes gc-pop-right {
+  0% { transform: scale(.1) rotate(-30deg); opacity: 1; }
+  35% { transform: scale(1.2, .9) rotate(8deg); }
+  55% { transform: scale(.95, 1.08) rotate(0); opacity: 1; }
+  100% { transform: scale(1.1); opacity: 0; }
+}
+@keyframes gc-pop-wrong {
+  0% { transform: scale(.2); opacity: 1; }
+  30% { transform: scale(1.15, .85); }
+  45% { transform: scale(.9, 1.1) translateX(-6px); }
+  60% { transform: scale(1) translateX(6px); opacity: 1; }
+  75% { transform: translateX(-3px); }
+  100% { transform: scale(1.05) translateY(-14px); opacity: 0; }
+}
+@keyframes gc-burst-ring { from { transform: scale(.3); opacity: 1; } to { transform: scale(1.6); opacity: 0; } }
+@keyframes gc-confetti { from { transform: scale(.4) rotate(0); opacity: 1; } to { transform: scale(1.9) rotate(70deg); opacity: 0; } }
+@keyframes gc-puff { from { transform: scale(.5); opacity: 1; } to { transform: scale(1.7); opacity: 0; } }
+
+.gc-plus, .gc-minus {
+  position: absolute; z-index: 7; left: var(--x, 50%); top: var(--y, 40%); transform: translate(-50%, -50%);
+  font: 800 34px/1 var(--gc-font-num); color: var(--gc-lime); white-space: nowrap; pointer-events: none;
+  -webkit-text-stroke: 3px var(--gc-ink); paint-order: stroke fill;
+  text-shadow: 0 4px 0 var(--gc-ink), 0 0 16px rgba(57,255,136,.6);
+  animation: gc-float-up 1s var(--gc-bounce) 1 forwards;
+}
+.gc-minus { color: var(--gc-red); text-shadow: 0 4px 0 var(--gc-ink), 0 0 16px rgba(255,59,92,.6); }
+.gc-plus.is-hold, .gc-minus.is-hold { animation: none; }
+@keyframes gc-float-up {
+  0% { transform: translate(-50%, -20%) scale(.3); opacity: 0; }
+  25% { transform: translate(-50%, -60%) scale(1.25, .9); opacity: 1; }
+  45% { transform: translate(-50%, -80%) scale(.95, 1.08); }
+  100% { transform: translate(-50%, -190%) scale(1); opacity: 0; }
+}
+
+.gc-shake { animation: gc-shake .45s cubic-bezier(.36,.07,.19,.97) 1 !important; }
+@keyframes gc-shake {
+  10%, 90% { transform: translate(-2px, 1px); }
+  20%, 80% { transform: translate(4px, -2px); }
+  30%, 50%, 70% { transform: translate(-7px, 2px) rotate(-.6deg); }
+  40%, 60% { transform: translate(7px, -1px) rotate(.6deg); }
+}
+
+/* ---------------- REDUCED MOTION ---------------- */
+@media (prefers-reduced-motion: reduce) {
+  .gc-stage, .gc-stage::before, .gc-heart, .gc-ask, .gc-target, .gc-target-img, .gc-volt,
+  .gc-bolt::before, .gc-bolt.is-static, .gc-streak.is-hot .gc-streak-icon, .gc-problem { animation: none !important; }
+  .gc-fall { animation: none !important; }
+  .gc-volt.is-shoot, .gc-volt.is-hit, .gc-volt.is-miss,
+  .gc-score.is-bump, .gc-streak.is-bump, .gc-level.is-up, .gc-heart.is-lost, .gc-shake { animation: none !important; }
+  .gc-streak.is-bump::after, .gc-pop::before, .gc-pop::after { display: none; }
+  .gc-pop-right, .gc-pop-wrong, .gc-plus, .gc-minus, .gc-target.is-hit, .gc-target-img.is-hit, .gc-bolt.gc-fly {
+    animation: gc-fade-once .7s ease-out 1 forwards !important;
+  }
+  .gc-stage.gc-flash-wrong::after { animation: none; box-shadow: inset 0 0 60px 10px rgba(255,59,92,.5); }
+}
+@keyframes gc-fade-once { 0%, 50% { opacity: 1; } 100% { opacity: 0; } }

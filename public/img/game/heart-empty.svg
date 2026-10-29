@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 58" width="64" height="58" class="gc-heart-svg gc-heart-svg--empty" role="img" aria-label="Lost life">
+<title>Life (empty)</title>
+<path class="gc-heart-shape" d="M32 54 C14 42 4 32 4 19 C4 10 11 4 19 4 C25 4 29 7 32 12 C35 7 39 4 45 4 C53 4 60 10 60 19 C60 32 50 42 32 54 Z" fill="#1c1838" stroke="#05060f" stroke-width="5" stroke-linejoin="round"/>
+<path d="M32 54 C14 42 4 32 4 19 C4 10 11 4 19 4 C25 4 29 7 32 12 C35 7 39 4 45 4 C53 4 60 10 60 19 C60 32 50 42 32 54 Z" fill="none" stroke="#4a3f7a" stroke-width="2" stroke-dasharray="4 5" transform="translate(32 29) scale(.78) translate(-32 -29)"/>
+<path d="M32 13 L28 24 L35 30 L29 42" fill="none" stroke="#05060f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

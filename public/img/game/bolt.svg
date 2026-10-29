@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 124" width="64" height="124" class="gc-bolt-svg" role="img" aria-label="Lightning bolt">
+<title>Lightning bolt</title>
+<path class="gc-bolt-glow" d="M24 118 H52 L40 76 H56 L20 4 L28 58 H10 Z" fill="#f9f871" stroke="#f9f871" stroke-width="12" stroke-linejoin="round" opacity=".3"/>
+<path class="gc-bolt-body" d="M24 118 H52 L40 76 H56 L20 4 L28 58 H10 Z" fill="#f9f871" stroke="#05060f" stroke-width="5" stroke-linejoin="round"/>
+<path class="gc-bolt-core" d="M31 110 H43 L33 70 H45 L26 28 L31 64 H19 Z" fill="#ffffff"/>
+<path d="M14 62 L24 60" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+</svg>

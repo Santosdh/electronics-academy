@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 58" width="64" height="58" class="gc-heart-svg gc-heart-svg--full" role="img" aria-label="Life">
+<title>Life (full)</title>
+<path class="gc-heart-shape" d="M32 54 C14 42 4 32 4 19 C4 10 11 4 19 4 C25 4 29 7 32 12 C35 7 39 4 45 4 C53 4 60 10 60 19 C60 32 50 42 32 54 Z" fill="#ff3b5c" stroke="#05060f" stroke-width="5" stroke-linejoin="round"/>
+<path d="M32 48 C20 40 12 33 11 24" fill="none" stroke="#c4123a" stroke-width="5" stroke-linecap="round" opacity=".6"/>
+<path class="gc-heart-shine" d="M12 18 Q13 11 20 10" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/>
+<circle cx="25" cy="13" r="2.4" fill="#fff"/>
+</svg>

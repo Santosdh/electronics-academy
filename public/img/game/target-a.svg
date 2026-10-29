@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140" width="140" height="140" class="gc-target-svg gc-target-svg--a" role="img" aria-label="Amps target">
+<title>Amps target</title>
+<defs><radialGradient id="gc-tg-a" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset=".25" stop-color="#00f0ff"/><stop offset="1" stop-color="#0096b8"/></radialGradient></defs>
+<ellipse class="gc-target-glow" cx="70" cy="70" rx="64" ry="62" fill="#00f0ff" opacity=".18"/>
+<path class="gc-target-shell" d="M70 10 C104 10 128 34 128 66 C128 100 104 124 70 124 C36 124 12 100 12 66 C12 34 36 10 70 10 Z" fill="url(#gc-tg-a)" stroke="#05060f" stroke-width="6"/>
+<ellipse class="gc-target-plate" cx="70" cy="66" rx="42" ry="34" fill="#10122a" stroke="#05060f" stroke-width="4"/>
+<ellipse cx="70" cy="66" rx="36" ry="28" fill="none" stroke="#00f0ff" stroke-width="2" opacity=".55"/>
+<path class="gc-target-shine" d="M30 46 Q38 24 60 18" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".85"/>
+<circle cx="104" cy="30" r="4" fill="#fff" opacity=".8"/>
+<rect class="gc-target-tab" x="52" y="114" width="36" height="20" rx="10" fill="#00f0ff" stroke="#05060f" stroke-width="4"/>
+<g class="gc-target-icon" transform="translate(0 0)"><path d="M60 124 H78 M72 118 L79 124 L72 130" fill="none" stroke="#05060f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+</svg>
