@@ -1,0 +1,534 @@
+{
+ "modules": [
+  {
+   "number": 1,
+   "title": "Orientation & Electrical Safety",
+   "type": "Core",
+   "hours": 8,
+   "objectives": [
+    "Explain how current affects the human body and why 'low voltage' can still hurt you or the hardware",
+    "Apply lockout/tagout, PPE and safe bench practices",
+    "Recognize fire classes and extinguisher types; respond to a shock incident"
+   ],
+   "topics": [
+    "Shock physiology, arc flash awareness (NFPA 70E concepts)",
+    "LOTO, PPE, bench & tool safety, battery/stored-energy hazards (capacitors)",
+    "Fuses & breakers as protection",
+    "Lab rules, housekeeping, FOD awareness"
+   ],
+   "labs": [
+    "Bench safety walk-down & hazard hunt",
+    "Capacitor safe-discharge demonstration",
+    "LOTO practical on a training panel"
+   ],
+   "assessment": "Written safety quiz (100% required, may retake); LOTO practical sign-off",
+   "notes": "Safety tops CETa, Nida, Navy and USAF syllabi. Add site EHS rules.",
+   "phase": 1
+  },
+  {
+   "number": 2,
+   "title": "ESD Control & Part Handling",
+   "type": "Core",
+   "hours": 4,
+   "objectives": [
+    "Describe how ESD damages parts, including latent damage",
+    "Correctly use wrist straps, mats, smocks, ionizers and ESD packaging",
+    "Verify personal grounding before work"
+   ],
+   "topics": [
+    "Triboelectric charging, ESD-sensitive device classes",
+    "EPA (ESD Protected Area) rules",
+    "Wrist-strap/footwear testers, packaging, moisture-sensitive device awareness"
+   ],
+   "labs": [
+    "Wrist strap & mat test",
+    "Field-meter demo of charge generation by common materials"
+   ],
+   "assessment": "Quiz (80%); daily wrist-strap check log",
+   "notes": "Aerospace: ANSI/ESD S20.20 site control plan (required by NASA-STD-8739.6).",
+   "phase": 1
+  },
+  {
+   "number": 3,
+   "title": "Technician Math & Units",
+   "type": "Core",
+   "hours": 12,
+   "objectives": [
+    "Use SI prefixes, scientific & engineering notation fluently",
+    "Rearrange simple formulas; use ratios, percentages and tolerances",
+    "Use basic trig/vectors needed for AC; read binary/hex"
+   ],
+   "topics": [
+    "Metric prefixes (p, n, µ, m, k, M, G)",
+    "Algebra for Ohm's/power law",
+    "Tolerance and percent error",
+    "Intro to sine/cosine, phase angle",
+    "Number systems (binary, hex)"
+   ],
+   "labs": [
+    "Calculator drills; converting meter readings between units",
+    "Tolerance worksheet using real resistor values"
+   ],
+   "assessment": "Written test (80%)",
+   "notes": "Kept short and applied; delivered alongside Modules 4-5.",
+   "phase": 1
+  },
+  {
+   "number": 4,
+   "title": "Test Equipment I: Digital Multimeter & Bench Power Supply",
+   "type": "Core",
+   "hours": 10,
+   "objectives": [
+    "Measure voltage, current, resistance and continuity safely and accurately",
+    "Select ranges/jacks correctly and explain meter CAT ratings",
+    "Set voltage and current limits on a bench supply"
+   ],
+   "topics": [
+    "DMM functions, input impedance, loading, CAT ratings",
+    "Current measurement in series; blown-fuse prevention",
+    "Bench supply CV/CC modes, current limiting",
+    "Measurement uncertainty and recording data"
+   ],
+   "labs": [
+    "Measure a resistor kit and compare with color code",
+    "Series current measurement on a breadboard",
+    "Current-limit a supply to protect a load"
+   ],
+   "assessment": "Practical check-off: 10 measurements within tolerance, no unsafe meter use",
+   "notes": "Hands-on emphasis for new techs; Nida, CIE, USAF and Army all teach the meter early.",
+   "phase": 1
+  },
+  {
+   "number": 5,
+   "title": "DC Fundamentals: Ohm's Law, Power, Series & Parallel",
+   "type": "Core",
+   "hours": 24,
+   "objectives": [
+    "Explain voltage, current, resistance and power",
+    "Apply Ohm's law and the power law",
+    "Analyze series, parallel and series-parallel circuits"
+   ],
+   "topics": [
+    "Atomic structure, conductors/insulators",
+    "Ohm's law, power, energy, resistor wattage ratings",
+    "Series/parallel/combination circuits",
+    "Opens, shorts and their measured symptoms"
+   ],
+   "labs": [
+    "Build & measure series, parallel and combination circuits; compare predicted vs. measured",
+    "Overpower a resistor (controlled) to show derating"
+   ],
+   "assessment": "Written test (80%) + lab notebook review",
+   "notes": "Found in all 10 theory-bearing programs.",
+   "phase": 2
+  },
+  {
+   "number": 6,
+   "title": "DC Circuit Analysis: Kirchhoff's Laws & Dividers",
+   "type": "Core",
+   "hours": 16,
+   "objectives": [
+    "Apply KVL and KCL",
+    "Design and verify voltage and current dividers",
+    "Explain loading and (intro) Thevenin equivalents"
+   ],
+   "topics": [
+    "KVL/KCL, voltage & current dividers",
+    "Wheatstone bridge, potentiometers",
+    "Loading effects; intro to Thevenin/Norton",
+    "Batteries & internal resistance"
+   ],
+   "labs": [
+    "Divider design & loading experiment",
+    "Bridge balancing lab"
+   ],
+   "assessment": "Written test (80%); practical: predict and verify 3 node voltages",
+   "notes": "MIT 6.002 / AAS depth trimmed to technician level.",
+   "phase": 2
+  },
+  {
+   "number": 7,
+   "title": "Components & Data Sheets",
+   "type": "Core",
+   "hours": 12,
+   "objectives": [
+    "Identify common passive and electromechanical parts by sight and marking",
+    "Read resistor/capacitor codes and polarity markings",
+    "Extract key ratings from a data sheet"
+   ],
+   "topics": [
+    "Resistors (types, color/SMD codes), capacitors (types, polarity, voltage rating), inductors",
+    "Switches, relays, fuses, connectors, transformers",
+    "Part numbers, reference designators, data-sheet ratings",
+    "Counterfeit/suspect part awareness"
+   ],
+   "labs": [
+    "Component ID kit (timed)",
+    "Relay coil & contact test with DMM"
+   ],
+   "assessment": "Practical ID quiz (90%) + data-sheet scavenger hunt",
+   "notes": "Feeds directly into soldering and assembly work.",
+   "phase": 2
+  },
+  {
+   "number": 8,
+   "title": "Test Equipment II & AC Fundamentals: Oscilloscope & Function Generator",
+   "type": "Core",
+   "hours": 20,
+   "objectives": [
+    "Describe sine, square and pulse waveforms (peak, p-p, RMS, frequency, period, duty cycle)",
+    "Operate an oscilloscope (vertical, horizontal, trigger, probe compensation, grounding)",
+    "Use a function generator to drive circuits"
+   ],
+   "topics": [
+    "AC generation, RMS vs. peak",
+    "Oscilloscope controls, 10x probes, ground-lead hazards, cursors/automatic measurements",
+    "Function generator settings, output impedance",
+    "Frequency, phase, duty cycle"
+   ],
+   "labs": [
+    "Probe compensation",
+    "Measure generator signals and compare with DMM AC readings",
+    "Duty-cycle / PWM measurement"
+   ],
+   "assessment": "Practical scope check-off (set up and measure 5 signals unaided) + quiz (80%)",
+   "notes": "Scope & generator listed by USAF EPI, Army 94F, CIE, Nida, CETa.",
+   "phase": 2
+  },
+  {
+   "number": 9,
+   "title": "Reactive Circuits: Capacitors, Inductors, RC/RL/RLC & Transformers",
+   "type": "Core",
+   "hours": 16,
+   "objectives": [
+    "Explain capacitive/inductive reactance and impedance",
+    "Measure RC time constants and filter response",
+    "Explain transformer turns ratio and isolation"
+   ],
+   "topics": [
+    "Reactance, impedance, phase",
+    "RC/RL time constants and transients",
+    "Low/high-pass filters, resonance (overview)",
+    "Transformers, isolation, safety"
+   ],
+   "labs": [
+    "RC charge/discharge on scope",
+    "Simple filter frequency sweep",
+    "Transformer ratio measurement (low-voltage)"
+   ],
+   "assessment": "Written test (75%) + lab report",
+   "notes": "",
+   "phase": 2
+  },
+  {
+   "number": 10,
+   "title": "Semiconductors: Diodes, LEDs, Transistors as Switches",
+   "type": "Core",
+   "hours": 20,
+   "objectives": [
+    "Test diodes and transistors with a DMM",
+    "Explain rectification and Zener regulation",
+    "Use BJT and MOSFET as switches to drive loads"
+   ],
+   "topics": [
+    "PN junction, diode/LED/Zener behavior",
+    "Half/full-wave rectifiers",
+    "BJT & MOSFET basics, switching a relay/LED, flyback diodes",
+    "ESD-sensitive device handling refresher"
+   ],
+   "labs": [
+    "Diode/transistor good/bad testing",
+    "Build a bridge rectifier & view ripple on scope",
+    "Transistor relay driver"
+   ],
+   "assessment": "Written test (80%) + practical component test",
+   "notes": "",
+   "phase": 2
+  },
+  {
+   "number": 11,
+   "title": "Power Supplies & Regulation",
+   "type": "Core",
+   "hours": 10,
+   "objectives": [
+    "Trace a linear supply block-by-block (transformer, rectifier, filter, regulator)",
+    "Measure ripple and load regulation",
+    "Recognize switching-supply hazards"
+   ],
+   "topics": [
+    "Filter capacitors, ripple",
+    "Linear regulators (78xx/LDO)",
+    "Intro to switching regulators (concept only)",
+    "Supply faults and symptoms"
+   ],
+   "labs": [
+    "Build a regulated 5 V supply; measure ripple and regulation under load"
+   ],
+   "assessment": "Practical: supply meets spec; short quiz",
+   "notes": "",
+   "phase": 2
+  },
+  {
+   "number": 12,
+   "title": "Amplifier & Op-Amp Basics",
+   "type": "Core",
+   "hours": 8,
+   "objectives": [
+    "Explain gain, input/output, clipping",
+    "Build inverting/non-inverting op-amp circuits and a comparator"
+   ],
+   "topics": [
+    "Gain, decibels (intro)",
+    "Op-amp rules, inverting/non-inverting, comparator, buffer"
+   ],
+   "labs": [
+    "Op-amp gain lab with scope"
+   ],
+   "assessment": "Quiz (75%) + lab verification",
+   "notes": "Kept brief for entry level; deeper analog is optional.",
+   "phase": 2
+  },
+  {
+   "number": 13,
+   "title": "Digital Fundamentals",
+   "type": "Core",
+   "hours": 20,
+   "objectives": [
+    "Use binary/hex and Boolean logic",
+    "Identify gates, flip-flops and counters on schematics",
+    "Probe logic levels with a DMM, logic probe and scope"
+   ],
+   "topics": [
+    "Logic gates, truth tables, logic families & levels (TTL/CMOS)",
+    "Flip-flops, counters, registers",
+    "Clocks, pull-ups, A/D and D/A (overview)",
+    "Digital troubleshooting (stuck high/low)"
+   ],
+   "labs": [
+    "Gate truth-table lab",
+    "Build a 4-bit counter with display",
+    "Find an inserted digital fault"
+   ],
+   "assessment": "Written test (80%) + practical",
+   "notes": "In all 10 theory-bearing programs.",
+   "phase": 2
+  },
+  {
+   "number": 14,
+   "title": "Schematics, Drawings & Technical Documentation",
+   "type": "Core",
+   "hours": 12,
+   "objectives": [
+    "Read schematic symbols, reference designators and net labels",
+    "Correlate schematic, assembly drawing and physical board",
+    "Follow work instructions, travelers and revision control"
+   ],
+   "topics": [
+    "Symbols, block diagrams, wiring/interconnect diagrams",
+    "Assembly drawings, BOMs, pin numbering, connector pinouts",
+    "Work instructions, travelers, nonconformance reporting",
+    "Engineering change/revision awareness"
+   ],
+   "labs": [
+    "Trace a real board against its schematic",
+    "Build a small circuit from a schematic only",
+    "Mark up a wiring diagram for a harness"
+   ],
+   "assessment": "Practical: locate 10 items on board from schematic; quiz",
+   "notes": "Mirrors USAF 'technical data' and Army technical-manual tasks.",
+   "phase": 3
+  },
+  {
+   "number": 15,
+   "title": "Hand Soldering I: Through-Hole & Wires/Terminals",
+   "type": "Core",
+   "hours": 24,
+   "objectives": [
+    "Explain solder/flux chemistry, wetting, and intermetallics",
+    "Make acceptable through-hole and terminal joints",
+    "Desolder without pad/trace damage"
+   ],
+   "topics": [
+    "Tools: iron/tip selection, temperature, fume extraction",
+    "Solder alloys (SnPb vs. lead-free), flux, cleaning",
+    "Lead forming, hole fill, wire stripping & tinning, turret/cup/hook terminals",
+    "Desoldering & rework basics"
+   ],
+   "labs": [
+    "Through-hole practice kit",
+    "Wire-to-terminal (turret, cup) practice",
+    "Desolder/replace component"
+   ],
+   "assessment": "Workmanship inspection of practice board to IPC criteria (target Class 3 with defect log) + written quiz",
+   "notes": "Aerospace: IPC J-STD-001 (Space Addendum for flight hardware); NASA-STD-8739.3 is superseded by J-STD-001xS.",
+   "phase": 3
+  },
+  {
+   "number": 16,
+   "title": "Hand Soldering II: SMT & Rework",
+   "type": "Core",
+   "hours": 20,
+   "objectives": [
+    "Place and solder chip, SOIC/gull-wing and fine-pitch parts",
+    "Use hot air and magnification correctly",
+    "Identify common SMT defects"
+   ],
+   "topics": [
+    "Chip components, gull-wing, J-lead",
+    "Hot-air rework, solder wick, flux use",
+    "Magnification and inspection lighting",
+    "Moisture-sensitive device handling"
+   ],
+   "labs": [
+    "SMT practice board (0805 -> SOIC -> fine pitch)",
+    "Remove/replace an SOIC with hot air"
+   ],
+   "assessment": "Workmanship inspection to IPC-A-610 criteria + practical demonstration",
+   "notes": "J-STD-001 Module 5; IPC-A-610.",
+   "phase": 3
+  },
+  {
+   "number": 17,
+   "title": "Workmanship Inspection & Quality Standards",
+   "type": "Core",
+   "hours": 8,
+   "objectives": [
+    "Explain IPC product classes 1/2/3 and target/acceptable/defect",
+    "Inspect assemblies and record defects",
+    "Understand the role of standards in aerospace hardware"
+   ],
+   "topics": [
+    "IPC-A-610 and J-STD-001 structure, order of precedence",
+    "Common defects (cold joint, bridging, insufficient wetting, damage)",
+    "Inspection documentation and traceability",
+    "NASA workmanship framework (NASA-STD-8739.6)"
+   ],
+   "labs": [
+    "Inspect a deliberately-defected board and complete a defect log"
+   ],
+   "assessment": "Inspection exercise: find >=90% of seeded defects",
+   "notes": "Prepares techs for formal IPC CIS certification (optional module).",
+   "phase": 3
+  },
+  {
+   "number": 18,
+   "title": "Wiring, Crimping, Cable & Harness Fundamentals",
+   "type": "Core",
+   "hours": 24,
+   "objectives": [
+    "Select wire gauge/insulation and strip without nicks",
+    "Make and inspect crimped contacts with calibrated tools",
+    "Build, lace/tie, label and continuity/insulation test a small harness"
+   ],
+   "topics": [
+    "Wire types, AWG, insulation; stripping",
+    "Crimp tools, die selection, pull-test concept, crimp inspection",
+    "Connector insertion/extraction, pinouts, backshells",
+    "Splices, heat-shrink, shielding/coax (intro), marking & securing",
+    "Continuity and insulation-resistance (hipot awareness) testing"
+   ],
+   "labs": [
+    "Crimp & pull-test exercise",
+    "Build a multi-branch harness from a drawing",
+    "Continuity/pin-to-pin test"
+   ],
+   "assessment": "Harness inspection against A-620 criteria + written quiz",
+   "notes": "Aerospace: IPC/WHMA-A-620 (Space Addendum) and NASA-STD-8739.4.",
+   "phase": 3
+  },
+  {
+   "number": 19,
+   "title": "Systematic Troubleshooting",
+   "type": "Core",
+   "hours": 20,
+   "objectives": [
+    "Apply a structured method (symptom -> half-split -> verify -> repair -> retest)",
+    "Use meter and scope together to isolate faults to a component",
+    "Document findings clearly"
+   ],
+   "topics": [
+    "Troubleshooting models (half-splitting, signal tracing, input/output checks)",
+    "Common failure modes (opens, shorts, drifted parts, cold joints, connectors)",
+    "Using schematics and expected values",
+    "Repair verification and documentation"
+   ],
+   "labs": [
+    "Fault-insertion boards (analog, power, digital)",
+    "Timed troubleshooting scenarios"
+   ],
+   "assessment": "Practical: isolate 3 of 4 unknown faults within time limit; troubleshooting report",
+   "notes": "Central to Navy ETN, USAF, Army 94F, CIE and Nida.",
+   "phase": 4
+  },
+  {
+   "number": 20,
+   "title": "Capstone: Build, Inspect, Test & Troubleshoot",
+   "type": "Core",
+   "hours": 16,
+   "objectives": [
+    "Build a small assembly + harness from documentation",
+    "Inspect, test and correct it",
+    "Present results"
+   ],
+   "topics": [
+    "Integrates all prior modules"
+   ],
+   "labs": [
+    "Kit build (e.g., regulated supply + digital counter + interface harness) to drawings and workmanship standard"
+   ],
+   "assessment": "Capstone rubric: workmanship, functional test, documentation, troubleshooting debrief",
+   "notes": "",
+   "phase": 4
+  }
+ ],
+ "optional": [
+  {
+   "title": "Microcontrollers & Embedded Basics",
+   "hours": 24,
+   "content": "Microcontroller architecture, GPIO, serial buses (UART/I2C/SPI), flashing firmware, using a logic analyzer.",
+   "drawnFrom": "Navy ETN, NEETS, Greenville, Nida, CETa (interfacing)"
+  },
+  {
+   "title": "RF & Communications Fundamentals",
+   "hours": 24,
+   "content": "Frequency/wavelength, transmission lines, coax & connectors, impedance matching, antennas, RF safety (MPE), spectrum analyzer and VNA basics.",
+   "drawnFrom": "NEETS, USAF EP, CETa, Nida"
+  },
+  {
+   "title": "Power Electronics & Motors",
+   "hours": 24,
+   "content": "Switching regulators, MOSFET drivers, DC/stepper/BLDC motors, relays/contactors, high-voltage safety.",
+   "drawnFrom": "NEETS, Navy ETN, USAF EP, Greenville, Nida"
+  },
+  {
+   "title": "Instrumentation, Sensors & Data Acquisition",
+   "hours": 20,
+   "content": "Transducers (temperature, pressure, strain), signal conditioning, ADC/DAC, calibration and metrology.",
+   "drawnFrom": "Navy ETN I&C, N. Seattle metrology, Nida transducers"
+  },
+  {
+   "title": "Conformal Coating, Staking & Encapsulation",
+   "hours": 8,
+   "content": "Coating types, masking, application & inspection.",
+   "drawnFrom": "J-STD-001 M3; NASA-STD-8739.1 (aerospace)"
+  },
+  {
+   "title": "Fiber Optic Terminations",
+   "hours": 16,
+   "content": "Fiber types, safety, termination, inspection, loss testing.",
+   "drawnFrom": "NEETS, N. Seattle, NASA-STD-8739.5 (aerospace)"
+  },
+  {
+   "title": "Advanced Analog & Circuit Analysis",
+   "hours": 24,
+   "content": "Small-signal transistor amplifiers, Thevenin/Norton, filters, second-order transients.",
+   "drawnFrom": "MIT 6.002, Greenville, Nida"
+  },
+  {
+   "title": "Formal IPC / NASA Certification (CIS)",
+   "hours": 40,
+   "content": "Instructor-led J-STD-001 (Space Addendum), IPC-A-610, IPC/WHMA-A-620 or NASA-STD-8739.4 certification through an authorized training center.",
+   "drawnFrom": "IPC, NASA/JPL MTTC"
+  }
+ ]
+}

@@ -1,0 +1,156 @@
+/* ==========================================================================
+   Guide companion ("Volt") — styles. Owned by the guide feature (public/js/guide.js).
+   Theme it by overriding the variables below (e.g. from cyberpunk.css or any later theme file):
+     --guide-accent   main accent (buttons, name, outline)
+     --guide-bg       bubble / card background
+     --guide-text     bubble / card text colour
+     --guide-glow     neon glow colour — set automatically per phase from --guide-phase-1..4
+     --guide-phase-1..4  per-phase glow colours (Phase 1 … Phase 4/advanced)
+   Defaults fall back to the active app theme (cyberpunk palette if present, else the light theme).
+   ========================================================================== */
+:root {
+  --guide-accent: var(--cp-cyan, var(--primary, #4f46e5));
+  --guide-bg: var(--cp-panel, var(--card, #ffffff));
+  --guide-text: var(--text, #0f172a);
+  --guide-muted: var(--muted, #64748b);
+  --guide-line: var(--line, #e5e7eb);
+  --guide-phase-1: var(--cp-cyan, #0891b2);
+  --guide-phase-2: var(--cp-magenta, #db2777);
+  --guide-phase-3: var(--cp-yellow, #ca8a04);
+  --guide-phase-4: var(--cp-violet, #7c3aed);
+  --guide-glow: var(--guide-phase-1);
+  --guide-face: #0b0d1f;
+  --guide-size: 60px;
+  --guide-z: 90;
+  --guide-font: var(--font, inherit);
+  --guide-display: var(--display, inherit);
+}
+.guide[data-phase="1"] { --guide-glow: var(--guide-phase-1); }
+.guide[data-phase="2"] { --guide-glow: var(--guide-phase-2); }
+.guide[data-phase="3"] { --guide-glow: var(--guide-phase-3); }
+.guide[data-phase="4"] { --guide-glow: var(--guide-phase-4); }
+
+/* ---------- container ---------- */
+.guide { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: var(--guide-z);
+  display: flex; flex-direction: column; align-items: flex-end; gap: 10px; pointer-events: none; font-family: var(--guide-font); color: var(--guide-text); }
+.guide[hidden] { display: none; }
+.guide > * { pointer-events: auto; }
+body.has-guide:not([data-route="simulator"]) .app { padding-bottom: calc(var(--guide-size) + 28px); }
+body:has(.mainnav.open) .guide { display: none; }
+
+/* ---------- avatar ---------- */
+.guide-avatar { position: relative; width: var(--guide-size); height: var(--guide-size); padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--guide-glow) 22%, var(--guide-bg)), var(--guide-bg) 70%);
+  box-shadow: 0 0 0 2px var(--guide-glow), 0 0 18px color-mix(in srgb, var(--guide-glow) 60%, transparent), 0 6px 18px rgba(0,0,0,.25);
+  transition: box-shadow .2s ease; }
+.guide-avatar:hover { box-shadow: 0 0 0 2px var(--guide-glow), 0 0 28px var(--guide-glow), 0 6px 18px rgba(0,0,0,.25); }
+.guide-avatar:focus-visible { outline: 3px solid var(--guide-accent); outline-offset: 3px; }
+.guide-svg { width: 100%; height: 100%; display: block; overflow: visible; animation: guide-float 4s ease-in-out infinite; } /* animate the drawing, not the button, so the hit target stays still */
+.guide-svg .g-halo { fill: none; stroke: var(--guide-glow); stroke-width: 1.2; opacity: .35; }
+.guide-svg .g-head { fill: color-mix(in srgb, var(--guide-glow) 30%, var(--guide-bg)); stroke: var(--guide-glow); stroke-width: 2; }
+.guide-svg .g-face { fill: var(--guide-face); }
+.guide-svg .g-eyes ellipse { fill: var(--guide-glow); transform-origin: center; transform-box: fill-box; animation: guide-blink 5s infinite; }
+.guide-svg .g-mouth { fill: none; stroke: var(--guide-glow); stroke-width: 2.2; stroke-linecap: round; }
+.guide-svg .g-cheek { fill: var(--guide-phase-2); opacity: .55; }
+.guide-svg .g-ear { fill: var(--guide-glow); opacity: .8; }
+.guide-svg .g-bolt { fill: var(--guide-phase-3); stroke: var(--guide-face); stroke-width: 1; filter: drop-shadow(0 0 3px var(--guide-phase-3)); }
+.guide[data-mood="focus"] .g-mouth { d: path("M27 42 L37 42"); }
+.guide[data-mood="party"] .g-mouth { d: path("M26 40 Q32 48 38 40 Z"); fill: var(--guide-glow); }
+.guide-dot { position: absolute; top: 2px; right: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--guide-phase-2);
+  box-shadow: 0 0 0 2px var(--guide-bg), 0 0 10px var(--guide-phase-2); transform: scale(0); transition: transform .2s; }
+.guide.has-tip .guide-dot { transform: scale(1); animation: guide-pulse 1.6s ease-in-out infinite; }
+.guide.is-celebrating .guide-avatar .guide-svg { animation: guide-hop .5s ease-in-out 4; }
+
+/* ---------- speech bubble ---------- */
+.guide-bubble { position: relative; width: min(360px, calc(100vw - 32px)); max-height: min(60vh, 460px); overflow: auto; overscroll-behavior: contain;
+  background: var(--guide-bg); color: var(--guide-text); border: 1px solid color-mix(in srgb, var(--guide-glow) 55%, var(--guide-line));
+  border-radius: 16px 16px 4px 16px; padding: 12px 14px 14px; font-size: .92rem; line-height: 1.45;
+  box-shadow: 0 0 22px color-mix(in srgb, var(--guide-glow) 28%, transparent), 0 12px 32px rgba(0,0,0,.28); animation: guide-pop .22s ease-out; }
+.guide-bubble[hidden] { display: none; }
+.guide-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; position: sticky; top: -12px; background: var(--guide-bg); padding-top: 2px; }
+.guide-name { font-family: var(--guide-display); font-weight: 800; letter-spacing: .04em; color: var(--guide-glow); text-shadow: 0 0 8px color-mix(in srgb, var(--guide-glow) 55%, transparent); }
+.guide-tag { color: var(--guide-muted); font-size: .78rem; flex: 1; min-width: 0; line-height: 1.25; overflow-wrap: anywhere; } /* wraps instead of truncating (the theme's monospace tagline is wide) */
+.guide-icon { border: 0; background: transparent; color: var(--guide-muted); font-size: 1.15rem; line-height: 1; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; }
+.guide-icon:hover, .guide-icon[aria-expanded="true"] { color: var(--guide-text); background: color-mix(in srgb, var(--guide-glow) 14%, transparent); }
+.guide-text p { margin: 0 0 8px; }
+.guide-text a { color: var(--guide-accent); }
+.guide-sub { font-weight: 700; margin-top: 4px !important; }
+.guide-list { margin: 0 0 8px; padding-left: 4px; list-style: none; }
+.guide-list li { margin: 3px 0; }
+.guide-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.guide-actions:empty { display: none; }
+.guide-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 6px 12px; border-radius: 10px; font: inherit; font-weight: 600; font-size: .88rem;
+  text-decoration: none; cursor: pointer; color: var(--guide-accent); background: transparent; border: 1px solid color-mix(in srgb, var(--guide-accent) 60%, transparent); }
+.guide-btn:hover { background: color-mix(in srgb, var(--guide-accent) 12%, transparent); }
+.guide-btn.primary { background: var(--guide-accent); color: var(--guide-face); border-color: var(--guide-accent); box-shadow: 0 0 12px color-mix(in srgb, var(--guide-accent) 45%, transparent); }
+.guide-btn.ghost { border-color: transparent; color: var(--guide-muted); }
+.guide-btn:disabled { opacity: .4; cursor: default; }
+.guide-menu { position: absolute; right: 10px; top: 44px; z-index: 2; display: flex; flex-direction: column; min-width: 220px; padding: 6px;
+  background: var(--guide-bg); border: 1px solid color-mix(in srgb, var(--guide-glow) 45%, var(--guide-line)); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.3); }
+.guide-menu[hidden] { display: none; }
+.guide-menu button { text-align: left; border: 0; background: transparent; color: var(--guide-text); font: inherit; padding: 9px 10px; border-radius: 8px; cursor: pointer; }
+.guide-menu button:hover, .guide-menu button:focus-visible { background: color-mix(in srgb, var(--guide-glow) 16%, transparent); }
+
+/* inline notes injected into quiz feedback */
+.guide-inline { margin: 10px 0 0; padding: 8px 10px; border-left: 3px solid var(--guide-glow, var(--guide-accent)); border-radius: 8px;
+  background: color-mix(in srgb, var(--guide-phase-1) 10%, transparent); font-size: .92rem; }
+.guide-inline a { color: var(--guide-accent); font-weight: 600; }
+.guide-mini { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--guide-phase-3); color: #111; font-size: .7rem; }
+
+/* restore button in the footer when dismissed */
+.guide-restore { margin-left: 12px; border: 1px dashed color-mix(in srgb, var(--guide-accent) 60%, transparent); background: transparent; color: var(--guide-accent);
+  border-radius: 999px; padding: 4px 12px; font: inherit; font-size: .85rem; cursor: pointer; }
+
+/* ---------- walkthrough tour ---------- */
+.guide-tour { position: fixed; inset: 0; z-index: 1000; }
+.guide-tour.no-target { background: rgba(3, 4, 12, .62); }
+.guide-spot { position: fixed; border-radius: 12px; pointer-events: none; transition: all .25s ease;
+  box-shadow: 0 0 0 9999px rgba(3, 4, 12, .62), 0 0 0 2px var(--guide-accent), 0 0 24px var(--guide-accent); }
+.guide-tour-card { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(380px, calc(100vw - 24px)); max-height: calc(100vh - 24px); overflow: auto;
+  background: var(--guide-bg); color: var(--guide-text); border: 1px solid var(--guide-accent); border-radius: 16px; padding: 16px;
+  box-shadow: 0 0 28px color-mix(in srgb, var(--guide-accent) 35%, transparent), 0 20px 50px rgba(0,0,0,.45); font-family: var(--guide-font); }
+.guide-tour-card.placed { transform: none; transition: left .25s ease, top .25s ease; }
+.guide-tour-head { display: flex; align-items: center; gap: 10px; }
+.guide-tour-head h2 { margin: 0; font-size: 1.1rem; font-family: var(--guide-display); }
+.guide-tour-av { width: 44px; height: 44px; flex: 0 0 44px; }
+.guide-tour-body p { margin: 10px 0 14px; line-height: 1.5; }
+.guide-tour-nav { display: flex; align-items: center; gap: 8px; }
+.guide-tour-count { flex: 1; text-align: center; color: var(--guide-muted); font-size: .85rem; }
+.guide.in-tour .guide-bubble { display: none; }
+
+
+/* ---------- compact layouts: phones (portrait & landscape) ---------- */
+@media (max-width: 760px), (max-height: 520px) {
+  :root { --guide-size: 48px; }
+  .guide { right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); }
+  .guide.is-open { left: max(8px, env(safe-area-inset-left)); }
+  .guide-bubble { width: 100%; max-height: 45vh; border-radius: 16px 16px 4px 16px; font-size: .9rem; }
+  body.has-guide:not([data-route="simulator"]) .app { padding-bottom: calc(var(--guide-size) + 22px); }
+  /* the simulator side panel is sticky at the bottom on phones: keep its last controls clear of the avatar */
+  body.has-guide[data-route="simulator"] .sim-side { padding-bottom: calc(var(--guide-size) + 16px); }
+  .guide-tour-card { padding: 14px; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .guide.is-open { left: auto; }
+  .guide-bubble { width: min(420px, 60vw); max-height: calc(100vh - var(--topbar-h, 56px) - var(--guide-size) - 36px); } /* stay below the top bar (☰ menu) */
+}
+
+/* phones in portrait: on the simulator the board fills the screen bottom, so dock the guide top-right under the top bar instead */
+@media (max-width: 760px) and (orientation: portrait) {
+  body[data-route="simulator"] .guide { top: calc(var(--topbar-h, 56px) + 6px); bottom: auto; flex-direction: column-reverse; --guide-size: 40px; }
+  body[data-route="simulator"] .guide-bubble { border-radius: 16px 4px 16px 16px; }
+  body.has-guide[data-route="simulator"] .sim-side { padding-bottom: 0; }
+  body.has-guide[data-route="simulator"] .page-head h1 { padding-right: calc(var(--guide-size) + 10px); } /* the theme's wide display title ran under the docked avatar */
+}
+
+/* ---------- motion ---------- */
+@keyframes guide-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes guide-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+@keyframes guide-pulse { 0%, 100% { box-shadow: 0 0 0 2px var(--guide-bg), 0 0 4px var(--guide-phase-2); } 50% { box-shadow: 0 0 0 2px var(--guide-bg), 0 0 14px var(--guide-phase-2); } }
+@keyframes guide-pop { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes guide-hop { 0%, 100% { transform: translateY(0) rotate(0); } 40% { transform: translateY(-12px) rotate(-8deg); } 70% { transform: translateY(-4px) rotate(6deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .guide-svg, .guide-svg .g-eyes ellipse, .guide.has-tip .guide-dot, .guide.is-celebrating .guide-avatar .guide-svg, .guide-bubble { animation: none !important; }
+  .guide-spot, .guide-tour-card.placed { transition: none; }
+}
+@media print { .guide, .guide-tour, .guide-restore { display: none !important; } }

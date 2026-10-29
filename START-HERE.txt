@@ -1,0 +1,9 @@
+Electronics Academy - run it on your laptop
+
+1. Install Node.js (the LTS version) from https://nodejs.org if you don't have it.
+2. Unzip this folder.
+3. Windows: double-click start-windows.bat
+   Mac: right-click start-mac.command, choose Open (the first time), then Open again.
+4. The first start takes a minute to install. Your browser then opens http://localhost:4321
+5. Sign in with dwight.santos@spacex.com and your password. Demo learner logins are in README.md.
+6. To stop the app, close the black terminal window.

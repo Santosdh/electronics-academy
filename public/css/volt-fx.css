@@ -1,0 +1,156 @@
+/* ==========================================================================
+   Volt lightning effects (volt-fx.js): bolt, neon outline flash, spark burst.
+   Colours: --vfx-c is set per run from --guide-phase-1..4 (guide.css).
+   --vfx-speed is 1000ms × (1 / VOLT_FX.speed); durations are fractions of it.
+   Everything sits in one fixed, click-through layer above the page, the
+   cyberpunk scanlines (z 999) and the guided tour (z 1000).
+   ========================================================================== */
+.vfx-layer { position: fixed; inset: 0; z-index: 1200; pointer-events: none; overflow: hidden; contain: strict; }
+.vfx-bolt { position: absolute; left: 0; top: 0; overflow: visible; --vfx-c: var(--guide-phase-1, #22d3ee); }
+.vfx-bolt path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.vfx-bolt-glow { stroke: var(--vfx-c); stroke-width: 9; opacity: .55; filter: blur(4px); }
+.vfx-bolt-core { stroke: #fff; stroke-width: 2.6; filter: drop-shadow(0 0 3px var(--vfx-c)) drop-shadow(0 0 8px var(--vfx-c)); }
+.vfx-bolt-fork { stroke: var(--vfx-c); stroke-width: 1.6; opacity: .85; filter: drop-shadow(0 0 4px var(--vfx-c)); }
+.vfx-bolt { animation: vfx-flicker calc(var(--vfx-speed, 1000ms) * .07) steps(2) 3; }
+.vfx-bolt.vfx-out { animation: vfx-bolt-out calc(var(--vfx-speed, 1000ms) * .25) ease-out forwards; }
+@keyframes vfx-flicker { 50% { opacity: .55; } }
+@keyframes vfx-bolt-out { to { opacity: 0; } }
+
+/* Locked: a short, grey-red bolt that sputters out */
+.vfx-bolt.vfx-fizzle { --vfx-c: #ff3b5c; animation: vfx-fizzle calc(var(--vfx-speed, 1000ms) * .6) linear forwards; }
+.vfx-bolt.vfx-fizzle .vfx-bolt-core { stroke: #ffd1d9; stroke-dasharray: 6 5 !important; }
+@keyframes vfx-fizzle { 0%, 30% { opacity: 1; } 40% { opacity: .2; } 50% { opacity: .9; } 65% { opacity: .1; } 75% { opacity: .6; } 100% { opacity: 0; } }
+.vfx-puff { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 210, 220, .9), rgba(255, 59, 92, .35) 45%, transparent 70%);
+  animation: vfx-puff calc(var(--vfx-speed, 1000ms) * .45) ease-out forwards; }
+@keyframes vfx-puff { from { transform: scale(.3); opacity: 1; } to { transform: scale(1.8); opacity: 0; } }
+
+/* Outline: bright neon flash in the phase colour */
+.vfx-ring { position: absolute; box-sizing: border-box; border: 2px solid var(--vfx-c, #22d3ee); --vfx-c: #22d3ee; }
+.vfx-glow { animation: vfx-glow calc(var(--vfx-speed, 1000ms) * .2) ease-out forwards;
+  box-shadow: 0 0 0 1px #fff inset, 0 0 12px 2px var(--vfx-c), 0 0 34px 6px var(--vfx-c), inset 0 0 22px var(--vfx-c);
+  background: color-mix(in srgb, var(--vfx-c) 14%, transparent); }
+@keyframes vfx-glow { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: scale(1); } }
+.vfx-glow.vfx-explode { animation: vfx-explode calc(var(--vfx-speed, 1000ms) * .42) cubic-bezier(.2, .8, .3, 1) forwards; }
+@keyframes vfx-explode {
+  0% { opacity: 1; transform: scale(1); filter: brightness(1.6); }
+  25% { opacity: 1; transform: scale(1.05); filter: brightness(2.2); border-width: 4px; }
+  100% { opacity: 0; transform: scale(1.35); filter: brightness(1); border-width: 1px; }
+}
+.vfx-impact { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 10px 4px var(--vfx-c), 0 0 26px 10px var(--vfx-c); animation: vfx-impact calc(var(--vfx-speed, 1000ms) * .35) ease-out forwards; }
+@keyframes vfx-impact { from { transform: scale(.4); opacity: 1; } to { transform: scale(2.4); opacity: 0; } }
+
+/* Explosion: radial flash plus shards and sparks flying out from the outline */
+.vfx-flash { position: absolute; width: var(--vfx-w, 220px); height: var(--vfx-w, 220px); margin: calc(var(--vfx-w, 220px) / -2) 0 0 calc(var(--vfx-w, 220px) / -2); border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, .85), color-mix(in srgb, var(--vfx-c) 55%, transparent) 30%, transparent 68%);
+  animation: vfx-flash calc(var(--vfx-speed, 1000ms) * .42) ease-out forwards; mix-blend-mode: screen; }
+@keyframes vfx-flash { from { transform: scale(.25); opacity: 1; } to { transform: scale(1.15); opacity: 0; } }
+.vfx-shard { position: absolute; width: 16px; height: 6px; margin: -3px 0 0 -8px; background: var(--vfx-c); border-radius: 1px;
+  box-shadow: 0 0 6px var(--vfx-c), 0 0 12px var(--vfx-c); clip-path: polygon(0 50%, 30% 0, 100% 40%, 70% 100%);
+  animation: vfx-shard calc(var(--vfx-speed, 1000ms) * .5) cubic-bezier(.1, .7, .3, 1) forwards; }
+.vfx-shard.vfx-spark { width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: #fff; clip-path: none; }
+@keyframes vfx-shard {
+  from { transform: translate(0, 0) rotate(0) scale(1.2); opacity: 1; }
+  to { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(.3); opacity: 0; }
+}
+
+/* Locked: red outline flash with a little shake */
+.vfx-locked { --vfx-c: #ff3b5c; border-color: #ff3b5c; box-shadow: 0 0 10px 2px #ff3b5c, inset 0 0 16px rgba(255, 59, 92, .45);
+  animation: vfx-locked calc(var(--vfx-speed, 1000ms) * .5) ease-out forwards; }
+@keyframes vfx-locked {
+  0% { opacity: 0; transform: translateX(0); } 12% { opacity: 1; transform: translateX(-5px); } 24% { transform: translateX(5px); }
+  36% { transform: translateX(-3px); } 48% { transform: translateX(2px); opacity: 1; } 100% { opacity: 0; transform: translateX(0); }
+}
+.vfx-locked.vfx-still { animation: vfx-fade-io 700ms ease-out forwards; }
+.vfx-toast { position: fixed; z-index: 1201; max-width: 320px; padding: .6rem .8rem; border-radius: 10px; font-size: .88rem; line-height: 1.35;
+  background: var(--guide-bg, #10122a); color: var(--guide-text, #e5e7eb); border: 1px solid #ff3b5c; box-shadow: 0 0 14px rgba(255, 59, 92, .45);
+  animation: vfx-fade-io 4.2s ease-out forwards; pointer-events: none; }
+.vfx-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* The clicked element gets a quick brightness pop of its own */
+.vfx-hit { filter: brightness(1.25) saturate(1.2); transition: filter .12s; }
+
+/* Reduced motion: just a quick outline fade, then the page changes */
+.vfx-fade { border-color: var(--vfx-c); box-shadow: 0 0 10px var(--vfx-c); animation: vfx-fade-io 300ms ease-out forwards; }
+@keyframes vfx-fade-io { 0% { opacity: 0; } 15% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .vfx-bolt, .vfx-shard, .vfx-flash, .vfx-impact, .vfx-puff { display: none !important; }
+  .vfx-hit { filter: none; }
+}
+@media print { .vfx-layer, .vfx-toast { display: none !important; } }
+
+/* ==========================================================================
+   Sign-in screen: Volt's entrance (app.js voltWelcome / startVoltWelcome).
+   Artwork by the artist: img/volt-welcome.jpg (+ raised-hand frame img/volt-welcome-wave.jpg).
+   Once per page load: fly in from the right edge with a cyan/magenta afterimage trail (1.2u), land with a
+   squash + platform-ring pulse, wave (raised-hand frame alternates ~250 ms × 3 with a ±3° rock; rock only if the wave
+   frame is missing) with a "HELLO, I'M VOLT" bubble, then settle into the idle hover bob.
+   --av-u is one time unit (1s; scaled by window.VOLT_WELCOME_SPEED for captures).
+   The layer never takes clicks and sits under the sign-in card, so the form is usable at once.
+   ========================================================================== */
+/* the fly-in starts off-screen to the right: clip it here (not on body, which would propagate to the viewport) */
+body.signed-out .auth-wrap { gap: 8px 40px; overflow-x: clip; overflow-y: visible; }
+body.signed-out .auth-card { position: relative; z-index: 1; }
+.auth-volt { --av-u: 1s; --av-glow: var(--guide-phase-2, #ff2bd6); position: relative; z-index: 0; pointer-events: none; user-select: none;
+  width: min(300px, 70vw); aspect-ratio: 3 / 4; }
+.auth-volt img { -webkit-user-drag: none; }
+.av-fly, .av-bob, .av-rock, .av-body, .av-pic { position: absolute; inset: 0; }
+.av-pic { -webkit-mask-image: radial-gradient(ellipse 62% 58% at 50% 50%, #000 62%, transparent 100%);
+          mask-image: radial-gradient(ellipse 62% 58% at 50% 50%, #000 62%, transparent 100%);
+  filter: drop-shadow(0 0 30px rgba(255, 43, 214, .25)); }
+.av-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.av-pic .av-wave { opacity: 0; }
+.av-trail { position: absolute; inset: 0; opacity: 0; pointer-events: none; background: url("../img/volt-welcome.jpg") center / cover no-repeat; mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 40%, transparent 85%);
+          mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 40%, transparent 85%); }
+.av-trail.c { filter: grayscale(1) brightness(1.3) sepia(1) hue-rotate(140deg) saturate(6); }
+.av-trail.m { filter: grayscale(1) brightness(1.3) sepia(1) hue-rotate(255deg) saturate(6); }
+.av-ring { position: absolute; left: 50%; top: 88%; width: 52%; aspect-ratio: 4 / 1; translate: -50% -50%; border-radius: 50%;
+  border: 2px solid var(--av-glow); box-shadow: 0 0 18px var(--av-glow), inset 0 0 12px var(--av-glow); opacity: 0; }
+.av-bubble { position: absolute; top: 6%; right: 74%; z-index: 2; width: max-content; max-width: min(200px, 42vw); opacity: 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--av-glow) 9%, var(--guide-bg, #0b0d1f)), var(--guide-bg, #0b0d1f)); color: var(--guide-text, #fff);
+  border: 1px solid color-mix(in srgb, var(--av-glow) 60%, transparent); padding: 8px 12px; font-size: .9rem; line-height: 1.3;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--av-glow) 30%, transparent); }
+.av-bubble b { display: block; font-family: var(--display, inherit); letter-spacing: .14em; text-transform: uppercase; font-size: .72rem; color: var(--av-glow);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--av-glow) 60%, transparent); }
+.av-bubble b::before { content: "> "; opacity: .6; }
+.av-bubble span { font-family: var(--display, inherit); font-weight: 800; letter-spacing: .06em; }
+
+/* 1) fly in (+ afterimages)  2) land: squash + ring pulse  3) wave + bubble  4) idle bob */
+.auth-volt.is-entering .av-fly { animation: av-fly calc(var(--av-u) * 1.2) cubic-bezier(.2, .8, .2, 1) both; }
+/* afterimages: the same flight, a beat behind, fading out as he lands */
+.auth-volt.is-entering .av-trail { animation: av-fly calc(var(--av-u) * 1.2) cubic-bezier(.2, .8, .2, 1) both, av-ghost calc(var(--av-u) * 1.3) ease-out both; }
+.auth-volt.is-entering .av-trail.c { animation-delay: calc(var(--av-u) * .07); }
+.auth-volt.is-entering .av-trail.m { animation-delay: calc(var(--av-u) * .15); }
+.auth-volt.is-entering .av-body { transform-origin: 50% 88%; animation: av-land calc(var(--av-u) * .5) ease-out calc(var(--av-u) * 1.15) both; }
+.auth-volt.is-entering .av-ring { animation: av-ring calc(var(--av-u) * .55) ease-out calc(var(--av-u) * 1.2) 2; }
+.auth-volt.is-entering .av-bubble { animation: av-pop calc(var(--av-u) * .3) cubic-bezier(.2, .9, .3, 1.3) calc(var(--av-u) * 1.6) both; }
+/* wave: the artist's raised-hand frame alternates with the base frame (~250 ms each, 3×) while the whole figure rocks ±3°
+   about the bottom centre; it ends on volt-welcome.jpg. Without the wave frame he just rocks. */
+.auth-volt.is-entering:not(.no-wave) .av-wave { animation: av-wave calc(var(--av-u) * .5) linear calc(var(--av-u) * 1.8) 3 both; }
+.auth-volt.is-entering .av-rock { transform-origin: 50% 100%; animation: av-rock calc(var(--av-u) * .5) ease-in-out calc(var(--av-u) * 1.8) 3 both; }
+.auth-volt.is-entering .av-bob { animation: volt-hover calc(var(--av-u) * 4) ease-in-out calc(var(--av-u) * 3.5) infinite; }
+.auth-volt.is-idle .av-bob { animation: volt-hover 4s ease-in-out infinite; }
+.auth-volt.is-idle .av-bubble { opacity: 1; }
+.no-wave .av-pic .av-wave { display: none; }
+@keyframes av-fly { 0% { transform: translateX(110vw) rotate(14deg) scale(.82); } 70% { transform: translateX(-2%) rotate(-3deg) scale(1.02); } 100% { transform: none; } }
+@keyframes av-ghost { 0% { opacity: .7; } 70% { opacity: .5; } 100% { opacity: 0; } }
+@keyframes av-land { 0% { transform: none; } 30% { transform: scale(1.1, .86); } 60% { transform: scale(.96, 1.05) translateY(-3%); } 100% { transform: none; } }
+@keyframes av-ring { 0% { opacity: .95; scale: .6; } 100% { opacity: 0; scale: 1.5; } }
+@keyframes av-pop { 0% { opacity: 0; transform: translateY(8px) scale(.7); } 100% { opacity: 1; transform: none; } }
+@keyframes av-wave { 0% { opacity: 0; } 8%, 50% { opacity: 1; } 58%, 100% { opacity: 0; } }
+@keyframes av-rock { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-3deg); } 75% { transform: rotate(3deg); } }
+@keyframes volt-hover { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+@media (min-width: 880px) {
+  body.signed-out .auth-wrap { grid-template-columns: auto auto; justify-content: center; }
+  .auth-volt { width: min(420px, 38vw); }
+}
+@media (max-width: 879px) { .auth-volt { width: min(220px, 55vw); margin-bottom: -20px; } .av-bubble { font-size: .8rem; padding: 6px 10px; right: auto; left: -30%; top: -2%; max-width: 150px; } }
+@media (orientation: landscape) and (max-height: 520px) { .auth-volt { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .auth-volt .av-fly, .auth-volt .av-bob, .auth-volt .av-rock, .auth-volt .av-body, .auth-volt .av-ring, .auth-volt .av-trail, .auth-volt .av-wave { animation: none !important; }
+  .auth-volt .av-bubble { animation: none !important; opacity: 1; }
+}

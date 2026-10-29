@@ -1,0 +1,269 @@
+{
+ "m1": {
+  "intro": "Welcome to the grid, tech. Safety first, always: this module teaches how current hurts people and hardware, plus LOTO, PPE and bench rules. You need 100% on the quiz, but you can retake it.",
+  "tips": [
+   "It's current through the body that kills, not the voltage number on the label. Treat every circuit as live until you've proven it dead.",
+   "Lock out, tag out, then try to start it. Then verify zero energy with a meter you've just checked on a known source.",
+   "Capacitors hold a charge after power is off. Discharge them through a resistor, never a screwdriver."
+  ],
+  "mistakes": [
+   "Assuming 'low voltage' means harmless.",
+   "Skipping the live-dead-live meter check.",
+   "Working alone on energized gear."
+  ],
+  "celebrate": "Safety cleared. You're officially allowed near live gear. Respect it."
+ },
+ "m2": {
+  "intro": "Static you can't even feel can kill a chip, or wound it so it fails months later. Let's get you grounded and working inside the ESD Protected Area.",
+  "tips": [
+   "Test your wrist strap every shift and log it.",
+   "Keep plastics, foam cups and regular bubble wrap out of the work area.",
+   "Move sensitive parts only in shielding bags or conductive totes."
+  ],
+  "mistakes": [
+   "Wearing the strap over a sleeve instead of on bare skin.",
+   "Thinking a part is fine because it still works. Latent damage is real."
+  ],
+  "celebrate": "Grounded and guarded. No chip dies on your watch."
+ },
+ "m3": {
+  "intro": "Tech math isn't calculus. It's prefixes, rearranging formulas and tolerances, the stuff you'll use every day at the bench.",
+  "tips": [
+   "Learn the prefix ladder cold: p, n, µ, m, k, M, G, each step 1000x.",
+   "Use engineering notation (powers of 3) so you can read answers straight off a meter.",
+   "Sanity-check every answer: does 4.7 kΩ times 2 mA really give you 9.4 V?"
+  ],
+  "mistakes": [
+   "Mixing up milli (m) and mega (M).",
+   "Forgetting to convert mA to A before multiplying."
+  ],
+  "celebrate": "Prefixes locked in. Micro, milli, kilo, all yours."
+ },
+ "m4": {
+  "intro": "Your first instruments: the DMM and the bench supply. Measure safely, measure accurately, and write it down.",
+  "tips": [
+   "Voltage goes in parallel, current goes in series. Break the circuit to measure amps.",
+   "Move the leads back to the V jack as soon as you finish a current reading.",
+   "Set the supply's current limit before you connect the load."
+  ],
+  "mistakes": [
+   "Measuring voltage with the leads in the A jack, which blows the fuse or worse.",
+   "Measuring resistance on a powered circuit.",
+   "Ignoring the meter's CAT rating."
+  ],
+  "celebrate": "Meter mastered. Measure twice, blow zero fuses."
+ },
+ "m5": {
+  "intro": "Phase 2 starts here. Ohm's law and power are the core of everything you'll do. Master series and parallel circuits and the rest gets easier.",
+  "tips": [
+   "V = I x R and P = V x I. Learn the triangle, then learn to rearrange it without one.",
+   "Series circuits share current and parallel circuits share voltage.",
+   "Predict before you measure. A big gap between the two is a clue."
+  ],
+  "mistakes": [
+   "Running a resistor near its wattage rating, so it cooks. Derate it.",
+   "Mixing up an open (no current, full voltage across the gap) with a short (high current, near-zero voltage)."
+  ],
+  "celebrate": "Ohm's law: mastered. V = I x R is now muscle memory."
+ },
+ "m6": {
+  "intro": "Kirchhoff's laws let you solve any DC circuit: voltage around a loop and current at a node. Dividers are where you'll use them most.",
+  "tips": [
+   "KVL says the voltage rises and drops around any loop add up to zero.",
+   "KCL says current in equals current out at every node.",
+   "A load on a divider changes its output. Keep the load at least 10x the bottom resistor."
+  ],
+  "mistakes": [
+   "Losing track of polarity signs when you write the loop equations.",
+   "Ignoring the meter's own loading on high-resistance dividers."
+  ],
+  "celebrate": "Kirchhoff approves. Every loop and node, solved."
+ },
+ "m7": {
+  "intro": "Know your parts on sight: resistors, caps, inductors, relays, connectors. The data sheet is your best friend.",
+  "tips": [
+   "Color code: Bad Beer Rots Our Young Guts But Vodka Goes Well (0 to 9).",
+   "Check the polarity and voltage rating on every electrolytic and tantalum cap.",
+   "Read the absolute max ratings first. They're the cliff edge."
+  ],
+  "mistakes": [
+   "Putting an electrolytic in backwards, which can make it vent or pop.",
+   "Reading an SMD code like '103' as 103 Ω. It's 10 kΩ."
+  ],
+  "celebrate": "Parts ID'd on sight. Data sheets fear you now."
+ },
+ "m8": {
+  "intro": "Time to see signals. The oscilloscope shows what the meter can't: shape, frequency and timing. Let's lock the trigger in.",
+  "tips": [
+   "Compensate your probe on the scope's cal signal before you trust any reading.",
+   "If the trace won't sit still, fix the trigger level and source first.",
+   "A sine's RMS is about 0.707 x peak. Your DMM reads RMS."
+  ],
+  "mistakes": [
+   "Clipping the probe ground to a point that isn't ground, which creates a short through the scope.",
+   "Leaving the scope on a 1x setting while the probe is on 10x, so readings are off by 10."
+  ],
+  "celebrate": "Trigger locked. You can see signals now."
+ },
+ "m9": {
+  "intro": "Caps and inductors fight change: one resists voltage changes, the other current changes. That's what timing, filters and transformers are built on.",
+  "tips": [
+   "Time constant τ = R x C. A cap reaches about 63% in one τ and is basically full in five.",
+   "Reactance changes with frequency: a cap's drops as frequency rises, an inductor's grows.",
+   "A transformer's voltage ratio equals its turns ratio."
+  ],
+  "mistakes": [
+   "Forgetting that a cap stays charged after power-off.",
+   "Adding reactance and resistance directly. Impedance adds as vectors."
+  ],
+  "celebrate": "RC, RL and RLC tamed. Time constants under control."
+ },
+ "m10": {
+  "intro": "Semiconductors are one-way valves and electronic switches. Diodes, LEDs and transistors make circuits do things.",
+  "tips": [
+   "Use the DMM's diode mode. A good silicon diode reads about 0.6 to 0.7 V one way and OL the other.",
+   "A transistor switch needs enough base current or gate voltage to saturate fully.",
+   "Always put a flyback diode across a relay coil."
+  ],
+  "mistakes": [
+   "Running an LED with no current-limiting resistor.",
+   "Leaving out the flyback diode, which kills the transistor.",
+   "Handling MOSFETs without ESD precautions."
+  ],
+  "celebrate": "Semiconductors switched on. Diodes, LEDs and transistors handled."
+ },
+ "m11": {
+  "intro": "Every device needs clean power. Follow the chain from transformer to rectifier to filter to regulator, and you can fix most supply faults.",
+  "tips": [
+   "Troubleshoot block by block: AC in, DC after the rectifier, smooth after the filter, regulated out.",
+   "Use the scope's AC coupling to measure ripple.",
+   "Linear regulators need headroom, and they get hot."
+  ],
+  "mistakes": [
+   "Probing a switching supply's primary side without an isolation transformer.",
+   "Ignoring a bulging filter cap."
+  ],
+  "celebrate": "Clean power delivered. Ripple flattened."
+ },
+ "m12": {
+  "intro": "Amps make small signals big. Op-amps follow two golden rules, and once you know them, most circuits read like a recipe.",
+  "tips": [
+   "Golden rules: no current flows into the inputs, and with feedback the inputs sit at the same voltage.",
+   "Inverting gain = -Rf/Rin. Non-inverting gain = 1 + Rf/Rin.",
+   "If the output is stuck at a rail, check whether the op-amp is clipping or has no feedback."
+  ],
+  "mistakes": [
+   "Expecting an output beyond the supply rails.",
+   "Forgetting the op-amp's power pins on a breadboard."
+  ],
+  "celebrate": "Gain achieved. Op-amps follow your rules."
+ },
+ "m13": {
+  "intro": "Ones and zeros. Gates, flip-flops and counters are the building blocks of every digital system you'll ever touch.",
+  "tips": [
+   "Build the truth table first and the circuit second.",
+   "An unconnected CMOS input floats. Tie it high or low.",
+   "Something stuck high or stuck low? Check for a missing pull-up or a shorted output."
+  ],
+  "mistakes": [
+   "Mixing logic families without checking their voltage levels.",
+   "Leaving inputs unconnected."
+  ],
+  "celebrate": "Logic HIGH. Ones and zeros obey you."
+ },
+ "m14": {
+  "intro": "Phase 3 is workmanship. It starts with the drawings, because if you can't read the documentation, you can't build or fix to it.",
+  "tips": [
+   "Reference designators (R12, C4, U3) connect the schematic, the BOM and the board.",
+   "Check the revision letter before you build. Old revs cause scrap.",
+   "If the drawing and the hardware disagree, stop and report it. Don't guess."
+  ],
+  "mistakes": [
+   "Working from an outdated print.",
+   "Counting pin 1 wrong on connectors and ICs."
+  ],
+  "celebrate": "Prints decoded. Schematic to board, no guessing."
+ },
+ "m15": {
+  "intro": "Soldering time. Through-hole and terminal joints are the foundation of everything you'll build. Clean, hot, fluxed, fast.",
+  "tips": [
+   "Heat the joint, not the solder. Feed the solder into the pad and lead.",
+   "A good joint is shiny (for leaded solder), concave, and wets both surfaces.",
+   "Clean the tip and tin it often, and use flux."
+  ],
+  "mistakes": [
+   "Cold joints: dull, grainy and lumpy.",
+   "Too much heat, which lifts pads.",
+   "Moving the part before the solder sets."
+  ],
+  "celebrate": "Shiny, concave, wetted. Your through-hole joints pass."
+ },
+ "m16": {
+  "intro": "SMT shrinks everything. Steady hands, good magnification and hot air make it manageable. Start big and work down to fine pitch.",
+  "tips": [
+   "Tack one corner, check the alignment, then solder the rest.",
+   "Use plenty of flux and drag-solder fine-pitch parts, then wick off any bridges.",
+   "Bake moisture-sensitive parts if their bag was left open too long."
+  ],
+  "mistakes": [
+   "Solder bridges between fine-pitch leads.",
+   "Tombstoned chip parts.",
+   "Overheating nearby parts with hot air."
+  ],
+  "celebrate": "Fine pitch, no bridges. SMT unlocked."
+ },
+ "m17": {
+  "intro": "Quality is what separates hobby work from flight hardware. Learn the IPC classes and the target, acceptable and defect criteria, and how to spot defects.",
+  "tips": [
+   "Class 3 is high-reliability work (aerospace, medical). Assume Class 3 here.",
+   "Inspect under proper lighting and magnification, the same way every time.",
+   "Document every defect. If it isn't logged, it didn't happen."
+  ],
+  "mistakes": [
+   "Passing a joint because it works electrically.",
+   "Inspecting without a standard open to check against."
+  ],
+  "celebrate": "Inspector's eye online. Defects can't hide."
+ },
+ "m18": {
+  "intro": "Wires carry everything. Clean strips, correct crimps and solid harnesses prevent a big share of field failures.",
+  "tips": [
+   "Match the wire gauge, the contact and the crimp die every time.",
+   "Pull-test the crimp and check that the insulation and conductor sit right in the barrel.",
+   "Label and continuity-test every branch before you call the harness done."
+  ],
+  "mistakes": [
+   "Nicked or broken strands from a bad strip.",
+   "Using a die that's the wrong size.",
+   "Over-tightening ties until they crush the insulation."
+  ],
+  "celebrate": "Crimped, laced, tested. That harness is flight-ready."
+ },
+ "m19": {
+  "intro": "Phase 4: troubleshooting. This is where everything you've learned comes together. Use a method, not guesswork.",
+  "tips": [
+   "Check the obvious first: power, connectors, fuses, smoke and smell.",
+   "Split the circuit in half, find the good half, and repeat.",
+   "Write down the expected value next to each one you measure."
+  ],
+  "mistakes": [
+   "Swapping parts until it works, which is shotgunning.",
+   "Not retesting after the repair.",
+   "Skipping the write-up."
+  ],
+  "celebrate": "Fault found, fixed and verified. That's how a real tech works."
+ },
+ "m20": {
+  "intro": "Final boss: build it, inspect it, test it, debug it and present it. Everything you've done leads here. Make it count, tech.",
+  "tips": [
+   "Read the whole drawing package before you heat an iron.",
+   "Inspect as you go, not just at the end.",
+   "Keep a log of every problem and fix. The debrief scores that."
+  ],
+  "mistakes": [
+   "Rushing the build and losing points on workmanship.",
+   "Not testing each subsystem before you integrate them."
+  ],
+  "celebrate": "Capstone complete. You built it, broke it and fixed it. Welcome to the crew, tech."
+ }
+}

@@ -1,0 +1,31 @@
+# Render Blueprint for Electronics Academy (one Node web service + a persistent disk for SQLite).
+# New → Blueprint in the Render dashboard, pick this repo, fill in PUBLIC_URL when prompted, then Apply.
+services:
+  - type: web
+    name: electronics-academy
+    runtime: node
+    plan: starter            # a paid plan is required for a persistent disk
+    region: oregon
+    numInstances: 1          # SQLite on a disk = exactly one instance (disks can't be shared or scaled out)
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /healthz
+    disk:
+      name: academy-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: DB_PATH
+        value: /var/data/academy.db
+      - key: NODE_ENV
+        value: production
+      - key: NO_DEMO
+        value: "1"
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: dwight.santos@spacex.com
+      - key: ADMIN_NAME
+        value: Dwight Santos
+      - key: PUBLIC_URL      # e.g. https://electronics-academy.onrender.com or your custom domain (no trailing slash)
+        sync: false
