@@ -3,13 +3,14 @@
 //   v2 — curriculum restructure: module-based progress, practical check-offs, hours log.
 //   (Oct 2026: practical check-offs were removed from the program. The `checkoffs` table is kept so no
 //    data is lost, but the app no longer reads or writes it; completion = written test passed.)
+//   v3 — guide state; v4 — guide "Lightning effects" column; v5 — game_plays (lesson games, e.g. Ohm's Law Shooter).
 //        v1 progress tables are kept as legacy_v1_* (nothing is dropped); lesson completions are
 //        carried over because lesson ids are unchanged. Users and sessions are untouched.
 const path = require('path');
 const fs = require('fs');
 const Database = require('better-sqlite3');
 
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
 
 const USERS = `
 CREATE TABLE IF NOT EXISTS users (
@@ -114,14 +115,30 @@ function guideV4(db) {
   if (!db.prepare('PRAGMA table_info(guide_state)').all().some((c) => c.name === 'fx_enabled')) db.exec('ALTER TABLE guide_state ADD COLUMN fx_enabled INTEGER NOT NULL DEFAULT 1');
 }
 
+// v5: one row per finished game (scores for the lesson games). Purely additive; nothing existing is touched.
+const GAMES_V5 = `
+CREATE TABLE IF NOT EXISTS game_plays (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  game TEXT NOT NULL,                 -- e.g. 'ohms-shooter'
+  score INTEGER NOT NULL,
+  level INTEGER NOT NULL,             -- highest level reached
+  correct INTEGER NOT NULL DEFAULT 0,
+  wrong INTEGER NOT NULL DEFAULT 0,
+  duration_ms INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_game_plays_user ON game_plays(user_id, game, score);
+`;
+
 const hasTable = (db, t) => !!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(t);
 const columns = (db, t) => db.prepare(`PRAGMA table_info(${t})`).all().map((c) => c.name);
 
 function migrate(db) {
   const version = db.pragma('user_version', { simple: true });
-  if (version >= SCHEMA_VERSION) { db.exec(PROGRESS_V2); db.exec(GUIDE_V3); guideV4(db); return { from: version, to: version, migrated: false }; }
-  if (version === 2 || version === 3) { // v2/v3 → v4: add the guide table and/or its effects column only
-    db.transaction(() => { db.exec(PROGRESS_V2); db.exec(GUIDE_V3); guideV4(db); db.pragma(`user_version = ${SCHEMA_VERSION}`); })();
+  if (version >= SCHEMA_VERSION) { db.exec(PROGRESS_V2); db.exec(GUIDE_V3); guideV4(db); db.exec(GAMES_V5); return { from: version, to: version, migrated: false }; }
+  if (version >= 2) { // v2/v3/v4 → v5: additive only (guide table, its effects column, game_plays)
+    db.transaction(() => { db.exec(PROGRESS_V2); db.exec(GUIDE_V3); guideV4(db); db.exec(GAMES_V5); db.pragma(`user_version = ${SCHEMA_VERSION}`); })();
     return { from: version, to: SCHEMA_VERSION, migrated: true, carriedLessons: 0, legacyAttempts: 0 };
   }
   const v1 = hasTable(db, 'lesson_completions') && columns(db, 'lesson_completions').includes('level_id');
@@ -137,6 +154,7 @@ function migrate(db) {
     db.exec(PROGRESS_V2);
     db.exec(GUIDE_V3);
     guideV4(db);
+    db.exec(GAMES_V5);
     if (v1) {
       const C = require('./curriculum');
       const ins = db.prepare('INSERT OR IGNORE INTO lesson_completions (user_id,lesson_id,module_id,method,completed_at) VALUES (?,?,?,?,?)');

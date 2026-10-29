@@ -215,6 +215,30 @@ const ok = (n, c, x) => { if (c) { pass++; console.log('PASS', n); } else { fail
     await lctx.close();
   }
 
+  // Ohm's Law Shooter on a phone: fits the screen, taps hit bubbles, Games reachable from the ☰ menu
+  {
+    const gp = await phone(390, 844, 'game');
+    await gp.tap('#navToggle'); await gp.waitForTimeout(250);
+    ok('game (phone): Games in the ☰ menu', await gp.isVisible('#mainnav a[data-nav=games]'));
+    await gp.tap('#mainnav a[data-nav=games]'); await gp.waitForSelector('.game-card');
+    await gp.goto(BASE + '/#/games/ohms-shooter'); await gp.waitForSelector('.osg-start');
+    await gp.waitForFunction(() => document.querySelector('.osg').dataset.art !== 'loading');
+    const fit = await gp.evaluate(() => { const s = document.querySelector('.osg-stage').getBoundingClientRect(), b = document.querySelector('.osg-bar').getBoundingClientRect();
+      return { stageW: Math.round(s.width), bottom: Math.round(b.bottom), vh: innerHeight, docW: document.documentElement.scrollWidth, art: document.querySelector('.osg').dataset.art }; });
+    ok('game (phone): stage + controls fit 390×844, no sideways scroll', fit.bottom <= fit.vh && fit.docW <= 391 && fit.stageW >= 360 && fit.art === 'cartoon', fit);
+    await gp.tap('.osg-start'); await gp.waitForFunction(() => window.OHM_SHOOTER.targets().length === 4);
+    await gp.waitForFunction(() => { const p = document.querySelector('.osg-prompt'), top = p.offsetTop + p.offsetHeight; return window.OHM_SHOOTER.targets().every((t) => t.y > top); });
+    await gp.evaluate(() => { window.OHM_SHOOTER.speed = 0.2; });
+    const sz = await gp.$eval('.osg-target', (b) => b.getBoundingClientRect().width);
+    ok('game (phone): bubbles are big tap targets (≥ 64 px)', sz >= 64, sz);
+    const right = await gp.evaluate(() => window.OHM_SHOOTER.targets().find((t) => t.correct).label);
+    await gp.tap(`.osg-target[aria-label="Shoot ${right}"]`, { force: true });
+    await gp.waitForFunction(() => window.OHM_SHOOTER.state().score > 0);
+    ok('game (phone): tapping the right bubble scores', true);
+    ok('game (phone): floating guide steps aside while playing', !(await gp.isVisible('#guideAvatar')));
+    await gp.context().close();
+  }
+
   // Desktop sanity: simulator layout unchanged
   const dctx = await browser.newContext({ viewport: { width: 1366, height: 900 } });
   const dp = await dctx.newPage();

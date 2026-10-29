@@ -222,6 +222,7 @@
           (st || ms.locked ? '' : '<a class="btn tiny ghost" href="#/quiz/testout-lesson/' + l.id + '" title="Score ' + m.testOutPercent + '% to skip this lesson">Test out</a>') + '</li>';
       }).join('') + '</ol>' : '<p class="muted">No app lessons for this module yet — use the outline above.</p>') + '</section>' +
       (m.sims && m.sims.length ? '<section class="card"><h2>🔌 Simulator examples</h2><div class="quick-links">' + m.sims.map(function (k) { return '<a href="#/simulator?preset=' + k + '">' + esc(simName(k)) + '</a>'; }).join('') + '</div></section>' : '') +
+      gamesFor('modules', m.id).map(playCard).join('') +
       '</div><aside>' +
       completionCard(m, ms) +
       (m.lessons.length ? '<section class="card quiz-cta"><h2>📝 Written test</h2><p class="muted small">' + CUR.moduleTestSize(id) + ' questions' + (m.safety ? ' (every question in the module)' : '') + '. Pass mark <strong>' + m.passPercent + '%</strong>.</p>' +
@@ -389,6 +390,7 @@
       '<div class="btn-row">' + (prev ? '<a class="btn ghost" href="#/lesson/' + prev.id + '">← ' + esc(prev.title) + '</a>' : '') + (next ? '<a class="btn ghost" href="#/lesson/' + next.id + '">' + esc(next.title) + ' →</a>' : '<a class="btn ghost" href="#/module/' + m.id + '">Back to ' + modLabel(m) + ' →</a>') + '</div></footer>' +
       '</article><aside class="lesson-aside"><section class="card"><h3>✅ Quick check</h3><p class="muted small">' + l.questions.length + ' practice questions on this lesson, with explanations.</p>' + (ms.locked ? '<button class="btn block" disabled>Locked</button>' : '<a class="btn block" href="#/quiz/lesson/' + l.id + '">Check my understanding</a>') + '</section>' +
       (st || ms.locked ? '' : '<section class="card testout-cta"><h3>⚡ Already know this?</h3><p class="muted small">Score ' + m.testOutPercent + '%' + (m.safety ? ' (Level 0 — no test-out below 100%)' : '+') + ' to mark it complete via test-out.</p><a class="btn block secondary" href="#/quiz/testout-lesson/' + l.id + '">Test out of this lesson</a></section>') +
+      gamesFor('lessons', l.id).map(function (g) { return playCard(g, l.id); }).join('') +
       '<section class="card"><h3>' + modLabel(m) + ' written test</h3><p class="muted small">Pass mark ' + m.passPercent + '%. Passing it completes the module.</p><a class="btn block ghost" href="#/module/' + m.id + '">Module overview</a></section>' +
       '</aside></div>';
     renderComplete();
@@ -702,6 +704,40 @@
     end.addEventListener('change', refresh); refresh();
   }
 
+  // ---------- games (lesson games; engines live in public/js/games/) ----------
+  var GAME_ENGINES = { 'ohms-shooter': function () { return window.OhmShooter; } };
+  function gameMeta(id) { var e = GAME_ENGINES[id] && GAME_ENGINES[id](); return e ? e.GAME : null; }
+  function gamesFor(kind, id) { return Object.keys(GAME_ENGINES).map(gameMeta).filter(function (g) { return g && g[kind].indexOf(id) >= 0; }); }
+  function playCard(g, fromLesson) {
+    var href = '#/games/' + esc(g.id) + (typeof fromLesson === 'string' ? '?from=' + encodeURIComponent(fromLesson) : '');
+    return '<section class="card play-card" data-game="' + esc(g.id) + '"><h2>🎮 Play: ' + esc(g.title) + '</h2><p class="muted small">Shoot the right answer. Levels: find I → V and R → mA/kΩ → power.</p>' +
+      '<a class="btn block" href="' + href + '">' + g.icon + ' Play</a></section>';
+  }
+  function viewGames() {
+    setTitle('Games');
+    app.innerHTML = '<section class="card"><h1>🎮 Games</h1><p class="muted">Practice by playing.</p></section><div class="games-grid" id="gamesGrid"><p class="muted">Loading…</p></div>';
+    api('GET', '/games').then(function (d) {
+      var grid = document.getElementById('gamesGrid'); if (!grid) return;
+      grid.innerHTML = d.games.map(function (g) {
+        var mods = g.modules.map(function (id) { var m = CUR.modulesById[id]; return m ? '<a href="#/module/' + id + '">' + modLabel(m) + '</a>' : ''; }).join(' · ');
+        return '<section class="card game-card" data-game="' + esc(g.id) + '"><div class="game-icon">' + g.icon + '</div><h2>' + esc(g.title) + '</h2>' +
+          '<p class="small muted">Ohm’s law and power, from ' + mods + '.</p>' +
+          '<p class="game-stats">Best <b>' + g.stats.best + '</b> · ' + g.stats.plays + ' play' + (g.stats.plays === 1 ? '' : 's') + '</p>' +
+          '<a class="btn block" href="#/games/' + esc(g.id) + '">▶ Play</a></section>';
+      }).join('');
+    }).catch(function (e) { var grid = document.getElementById('gamesGrid'); if (grid) grid.innerHTML = errorBox(e); });
+  }
+  function viewGame(id, params) {
+    var E = GAME_ENGINES[id] && GAME_ENGINES[id](); if (!E) return notFound();
+    var g = E.GAME, from = params && params.from && CUR.lessonsById[params.from] ? CUR.lessonsById[params.from] : null;
+    var mod = CUR.modulesById[g.modules[0]];
+    var back = from ? { href: '#/lesson/' + from.id, label: from.title } : { href: '#/module/' + mod.id, label: modLabel(mod) };
+    setTitle(g.title);
+    app.innerHTML = '<div class="game-page"><nav class="crumbs"><a href="#/games">Games</a> › ' + esc(g.title) + '</nav><div id="gameMount"></div></div>';
+    E.mount(document.getElementById('gameMount'), { api: api, backHref: back.href, backLabel: '← ' + back.label,
+      onCredit: function () { loadProgress().catch(function () { /* refreshed on next navigation */ }); } });
+  }
+
   function notFound() { setTitle('Not found'); app.innerHTML = '<div class="card narrow"><h1>Page not found</h1><a class="btn" href="#/">Go to dashboard</a></div>'; }
   function forbidden() { setTitle('Not allowed'); app.innerHTML = '<div class="card narrow"><h1>Admins only</h1><p>This page is for team leads.</p><a class="btn" href="#/">Go to dashboard</a></div>'; }
 
@@ -720,7 +756,7 @@
     if (top === 'learn' || top === 'level') { location.hash = '#/program'; return; }
     document.body.setAttribute('data-route', top);
     var nav = { dashboard: 'dashboard', program: 'program', advanced: 'program', module: 'program', lesson: 'program', quiz: 'program', defects: 'program', hours: 'hours',
-      simulator: 'simulator', tools: 'tools', admin: 'admin', account: 'account' }[top] || '';
+      simulator: 'simulator', tools: 'tools', games: 'games', admin: 'admin', account: 'account' }[top] || '';
     updateChrome(nav);
     window.scrollTo(0, 0);
     document.querySelectorAll('.toast').forEach(function (t) { t.remove(); });
@@ -737,6 +773,7 @@
         case 'hours': return viewHours();
         case 'simulator': return viewSimulator(r.params);
         case 'tools': return viewTools();
+        case 'games': return p[1] ? viewGame(p[1], r.params) : viewGames();
         case 'account': return viewAccount();
         case 'admin': return p[1] === 'user' ? viewAdminUser(+p[2], r.params) : p[1] === 'report' ? viewAdminReport() : viewAdmin();
         default: return notFound();

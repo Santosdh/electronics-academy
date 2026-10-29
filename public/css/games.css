@@ -1,0 +1,130 @@
+/* Lesson games — Ohm's Law Shooter + the Games hub.
+   The game's look is the cartoon art kit: public/css/game-cartoon.css (.gc-* classes) + public/img/game/*.svg, linked by
+   ohm-shooter.js when GET /api/games/:id/art reports it. This file only:
+     1. sizes the kit's stage for the app page and lays out the game-only parts the kit doesn't cover
+        (.osg-hint, .osg-banner, .osg-panel/.osg-card, .osg-bar), drawn in the kit's palette (--gc-* vars, with fallbacks);
+     2. adds a "W" bubble for power answers (reuses the kit's yellow .gc-v bubble — the kit has no watts bubble);
+     3. gives a plain fallback look when the kit isn't present (.osg[data-art="placeholder"]);
+     4. switches loops/one-shots off for data-fx="reduced" (Lightning effects toggle off, or prefers-reduced-motion).
+   Nothing here edits cyberpunk.css or the artist's files. */
+
+.games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.game-card .game-icon { font-size: 2rem; }
+.game-card .game-stats { font-family: var(--mono, monospace); font-size: .85rem; }
+.play-card .btn { margin-top: 6px; }
+.game-page .crumbs { margin-bottom: 8px; }
+
+/* ---- page frame around the kit's stage ---- */
+.osg { --osg-ink: var(--gc-ink, #05060f); --osg-y: var(--gc-yellow, #f9f871); --osg-c: var(--gc-cyan, #00f0ff); --osg-m: var(--gc-magenta, #ff2bd6);
+  --osg-ok: var(--gc-lime, #39ff88); --osg-bad: var(--gc-red, #ff3b5c); --osg-panel: var(--gc-panel, #10122a);
+  position: relative; max-width: min(480px, max(400px, calc(var(--osg-h) * .56))); margin: 0 auto; outline: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+/* the kit's bg.svg is a 390x844 portrait drawn at 104% stage height, so the desktop stage keeps roughly that shape */
+.osg { --osg-h: clamp(540px, calc(100dvh - 170px), 860px); }
+.osg .osg-stage { position: relative; overflow: hidden; width: min(100%, 480px, max(400px, calc(var(--osg-h) * .56))); max-width: none; height: var(--osg-h); max-height: none;
+  margin: 0 auto; border-radius: 26px; border: 5px solid var(--osg-ink); box-shadow: 0 8px 0 var(--osg-ink), 0 0 40px rgba(255, 43, 214, .22); touch-action: manipulation; }
+.osg[data-art="loading"] .osg-stage > * { visibility: hidden; }
+.osg .osg-field { position: absolute; inset: 0; z-index: 3; }
+.osg .osg-volt { --volt-w: clamp(96px, 27%, 128px); transition: left .14s ease-out; pointer-events: none; }
+.osg .osg-prompt { pointer-events: none; }
+.osg .osg-prompt.osg-new { animation: gc-banner-in .45s var(--gc-bounce, ease-out) both; }
+
+/* bubbles are <button>s; positioned by the engine through --x / --y */
+.osg button.gc-target { --size: var(--osg-size, 88px); appearance: none; -webkit-appearance: none; padding: 0; margin-top: 0; font: inherit; color: inherit; cursor: crosshair; touch-action: manipulation; }
+.osg button.gc-target:focus-visible { outline: 4px solid #fff; outline-offset: 3px; }
+.osg .gc-target.osg-long > span { font-size: calc(var(--size, 92px) * .19); }
+.osg .gc-target.osg-unit-w { --icon: "W"; }
+.osg .gc-target.osg-gone { opacity: 0; transition: opacity .3s; }
+.osg .gc-target:disabled { pointer-events: none; }
+
+/* Volt's one-line tip */
+.osg .osg-hint { position: absolute; z-index: 8; bottom: calc(2% + var(--volt-h, 150px)); transform: translateX(-50%); width: max-content; max-width: min(86%, 380px);
+  padding: 8px 13px; border-radius: 16px; border: 4px solid var(--osg-ink); background: #fff; color: var(--osg-ink);
+  font: 700 15px/1.25 var(--gc-font-ui, system-ui, sans-serif); text-align: center; box-shadow: 0 4px 0 var(--osg-ink); pointer-events: none; }
+.osg-hint::after { content: ""; position: absolute; left: 50%; bottom: -13px; margin-left: -9px; border: 9px solid transparent; border-top-color: var(--osg-ink); border-bottom: 0; }
+.osg-hint[hidden] { display: none; }
+.osg[data-fx="full"] .osg-hint:not([hidden]) { animation: osg-pop-in .35s var(--gc-bounce, ease-out); }
+
+/* level banner */
+.osg .osg-banner { position: absolute; z-index: 8; left: 50%; top: 42%; transform: translate(-50%, -50%) rotate(-3deg); text-align: center; pointer-events: none;
+  padding: 10px 24px 12px; border-radius: 22px; border: 5px solid var(--osg-ink); background: linear-gradient(var(--gc-violet, #a259ff), #6b2fd1); box-shadow: 0 6px 0 var(--osg-ink); }
+.osg-banner b { display: block; font: 800 34px/1 var(--gc-font-num, system-ui, sans-serif); color: var(--osg-y); -webkit-text-stroke: 2px var(--osg-ink); paint-order: stroke fill; text-shadow: 0 3px 0 var(--osg-ink); }
+.osg-banner span { font: 700 15px/1.3 var(--gc-font-ui, system-ui, sans-serif); color: #fff; }
+.osg-banner[hidden] { display: none; }
+.osg[data-fx="full"] .osg-banner:not([hidden]) { animation: osg-pop-in .45s var(--gc-bounce, ease-out); }
+
+/* start / pause / game-over card */
+.osg .osg-panel { position: absolute; inset: 0; z-index: 9; display: flex; align-items: center; justify-content: center; padding: 18px; background: rgba(5, 6, 15, .55); }
+.osg-panel[hidden], .osg-panel:empty { display: none; }
+.osg-card { max-width: 330px; text-align: center; padding: 18px 20px 20px; border-radius: 24px; border: 5px solid var(--osg-ink); color: #fff;
+  background: linear-gradient(180deg, #1d1f4a, var(--osg-panel)); box-shadow: 0 7px 0 var(--osg-ink), inset 0 0 0 3px rgba(0, 240, 255, .5);
+  font-family: var(--gc-font-ui, system-ui, sans-serif); }
+.osg-card h2 { margin: 0 0 6px; font: 800 26px/1.1 var(--gc-font-num, system-ui, sans-serif); color: var(--osg-y); -webkit-text-stroke: 1.5px var(--osg-ink); paint-order: stroke fill; text-shadow: 0 3px 0 var(--osg-ink); }
+.osg-card p { margin: 6px 0; }
+.osg-card .btn { font: 800 18px/1 var(--gc-font-num, system-ui, sans-serif); border-radius: 999px; border: 4px solid var(--osg-ink); box-shadow: 0 4px 0 var(--osg-ink); margin-top: 8px; }
+.osg-card .osg-start, .osg-card .osg-resume { background: var(--osg-ok); color: var(--osg-ink); }
+.osg-final b { font: 800 34px/1 var(--gc-font-num, system-ui, sans-serif); color: var(--osg-y); -webkit-text-stroke: 1.5px var(--osg-ink); paint-order: stroke fill; }
+.osg-newbest { color: var(--osg-m); font-weight: 700; }
+.osg-credit { color: var(--osg-ok); }
+
+/* under the stage: sound · keys · pause */
+.osg-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; }
+.osg-btn { min-width: 44px; min-height: 44px; border-radius: 50%; border: 4px solid var(--osg-ink); background: var(--osg-panel); color: #fff; font-size: 1.05rem; cursor: pointer; box-shadow: 0 4px 0 var(--osg-ink); }
+.osg-btn:focus-visible { outline: 3px solid var(--osg-c); outline-offset: 2px; }
+.osg-keys { margin: 0; flex: 1; text-align: center; font-size: .8rem; color: var(--muted, #8b93b8); }
+.osg-keys kbd { font-family: var(--mono, monospace); border: 1px solid rgba(0, 240, 255, .4); border-radius: 4px; padding: 0 4px; }
+
+/* While a game is on screen, the floating guide steps aside (Volt is in the game). */
+body.osg-playing .guide { display: none !important; }
+
+@keyframes osg-pop-in { from { opacity: 0; scale: .6; } }
+
+/* ---- reduced effects: no loops, no flights, no shakes ---- */
+.osg[data-fx="reduced"] .osg-stage, .osg[data-fx="reduced"] .osg-stage::before, .osg[data-fx="reduced"] .gc-heart, .osg[data-fx="reduced"] .gc-ask,
+.osg[data-fx="reduced"] .gc-target, .osg[data-fx="reduced"] .gc-volt, .osg[data-fx="reduced"] .gc-problem, .osg[data-fx="reduced"] .gc-streak-icon,
+.osg[data-fx="reduced"] .gc-level, .osg[data-fx="reduced"] .gc-score, .osg[data-fx="reduced"] .gc-streak { animation: none !important; }
+.osg[data-fx="reduced"] .gc-streak::after { display: none; }
+.osg[data-fx="reduced"] .osg-volt { transition: none; }
+.osg[data-fx="reduced"] .gc-target.is-hit, .osg[data-fx="reduced"] .gc-target.is-wrong { opacity: .35; }
+.osg[data-fx="reduced"] .osg-stage.osg-hurt-still { box-shadow: 0 8px 0 var(--osg-ink), inset 0 0 50px 8px rgba(255, 59, 92, .45); }
+.osg[data-fx="reduced"] .guide-svg, .osg[data-fx="reduced"] .guide-svg * { animation: none !important; }
+
+/* ---- fallback look when the art kit is missing (same DOM, plain neon) ---- */
+.osg[data-art="placeholder"] .osg-stage { background: radial-gradient(ellipse at 50% 120%, rgba(255, 43, 214, .25), transparent 60%), #05060f; color: #fff; font-family: system-ui, sans-serif; }
+.osg[data-art="placeholder"] .gc-hud { position: absolute; z-index: 5; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: center; }
+.osg[data-art="placeholder"] .gc-hud-group { display: flex; gap: 10px; align-items: center; }
+.osg[data-art="placeholder"] .gc-heart::before { content: "♥"; color: var(--osg-m); font-size: 20px; font-style: normal; }
+.osg[data-art="placeholder"] .gc-heart.is-empty::before { color: #333; }
+.osg[data-art="placeholder"] .gc-score small, .osg[data-art="placeholder"] .gc-level small { font-size: 10px; opacity: .7; margin-right: 4px; }
+.osg[data-art="placeholder"] .gc-score b { color: var(--osg-y); font-size: 20px; }
+.osg[data-art="placeholder"] .gc-problem { position: absolute; z-index: 5; top: 56px; left: 12px; right: 12px; padding: 8px; text-align: center; border: 1px solid var(--osg-c); border-radius: 12px; background: rgba(16, 18, 42, .9); }
+.osg[data-art="placeholder"] .gc-problem-tag { display: block; font-size: 12px; text-transform: uppercase; color: var(--osg-c); }
+.osg[data-art="placeholder"] .gc-problem-eq { display: flex; justify-content: center; gap: 8px; font-size: 20px; font-weight: 700; }
+.osg[data-art="placeholder"] .gc-ask { color: var(--osg-y); }
+.osg[data-art="placeholder"] .gc-target { position: absolute; left: var(--x); top: var(--y); width: var(--size); height: var(--size); margin-left: calc(var(--size) / -2);
+  border-radius: 50%; border: 3px solid var(--osg-y); background: rgba(16, 18, 42, .9); color: #fff; font-weight: 700; font-size: 16px; display: grid; place-items: center; }
+.osg[data-art="placeholder"] .gc-target.gc-a { border-color: var(--osg-c); }
+.osg[data-art="placeholder"] .gc-target.gc-ohm { border-color: var(--osg-m); }
+.osg[data-art="placeholder"] .gc-target.is-hit { border-color: var(--osg-ok); opacity: .3; }
+.osg[data-art="placeholder"] .gc-target.is-wrong { border-color: var(--osg-bad); opacity: .3; }
+.osg[data-art="placeholder"] .gc-volt { position: absolute; z-index: 4; bottom: 2%; width: 96px; height: 96px; margin-left: -48px; }
+.osg[data-art="placeholder"] .gc-volt > svg { width: 100%; height: 100%; }
+.osg[data-art="placeholder"] .osg-hint { bottom: calc(2% + 104px); }
+.osg[data-art="placeholder"] .gc-bolt { position: absolute; left: var(--x); top: var(--y); width: 4px; height: 40px; margin-left: -2px; background: #fff; box-shadow: 0 0 10px var(--osg-c); transition: transform var(--fly-dur) linear; }
+.osg[data-art="placeholder"] .gc-bolt.gc-fly { transform: translateY(var(--fly)); }
+.osg[data-art="placeholder"] .gc-plus, .osg[data-art="placeholder"] .gc-minus { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%); font-weight: 700; color: var(--osg-ok); pointer-events: none; }
+.osg[data-art="placeholder"] .gc-minus { color: var(--osg-bad); }
+.osg[data-art="placeholder"] .gc-pop { display: none; }
+
+@media (max-width: 600px) {
+  .game-page { margin: -8px -6px 0; }
+  .osg { --osg-h: clamp(500px, calc(100dvh - 150px), 800px); }
+  .osg { max-width: 480px; }
+  .osg .osg-stage { width: 100%; border-radius: 20px; border-width: 4px; }
+  .osg-keys { display: none; }
+  .osg-bar { margin-top: 8px; }
+}
+
+/* wider-than-art desktop stage: fit the kit's bg.svg to the width (still taller than the stage, so its vertical parallax keeps working) */
+@media (min-width: 601px) {
+  .osg .osg-stage.gc-stage { background-size: 104% auto; }
+}

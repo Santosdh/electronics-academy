@@ -210,7 +210,8 @@ const ok = (name, cond, extra) => { if (cond) { pass++; console.log('PASS', name
     d.exec('DROP TABLE guide_state'); d.pragma('user_version = 2'); d.close();
     d = openDb(file);
     const after = d.prepare('SELECT id,email,role,password_hash FROM users ORDER BY id').all();
-    ok('migration: schema is v4', SCHEMA_VERSION === 4 && d.pragma('user_version', { simple: true }) === 4);
+    ok('migration: schema is v5', SCHEMA_VERSION === 5 && d.pragma('user_version', { simple: true }) === 5);
+    ok('migration v2 → v5: game_plays table created', !!d.prepare("SELECT name FROM sqlite_master WHERE name='game_plays'").get());
     ok('migration: guide_state table created', !!d.prepare("SELECT name FROM sqlite_master WHERE name='guide_state'").get());
     ok('migration: users, roles and password hashes preserved', JSON.stringify(before) === JSON.stringify(after) && after.length === before.length);
     // v3 → v4: an existing v3 guide_state row (no fx column) keeps its values and gets effects on
@@ -225,16 +226,33 @@ const ok = (name, cond, extra) => { if (cond) { pass++; console.log('PASS', name
       d3.pragma('user_version = 3'); d3.close();
       d3 = openDb(f3);
       const st = require('../server/guide').getState(d3, lid);
-      ok('migration v3 → v4: version bumped, fx column added', d3.pragma('user_version', { simple: true }) === 4 && d3.prepare('PRAGMA table_info(guide_state)').all().some((c) => c.name === 'fx_enabled'));
-      ok('migration v3 → v4: guide state and users preserved, effects default on', st.collapsed && st.tourDone && st.milestones[0] === 'safety' && st.effects === true &&
+      ok('migration v3 → v5: version bumped, fx column added', d3.pragma('user_version', { simple: true }) === 5 && d3.prepare('PRAGMA table_info(guide_state)').all().some((c) => c.name === 'fx_enabled'));
+      ok('migration v3 → v5: guide state and users preserved, effects default on', st.collapsed && st.tourDone && st.milestones[0] === 'safety' && st.effects === true &&
         JSON.stringify(d3.prepare('SELECT id,email,role,password_hash FROM users ORDER BY id').all()) === JSON.stringify(users3), st);
       d3.close(); ['', '-wal', '-shm'].forEach((s) => { try { fs.unlinkSync(f3 + s); } catch (e) { /* ignore */ } });
     }
+    // v4 → v5: a v4 database (no game_plays) keeps every row and gains the game table
+    {
+      const f4 = path.join(os.tmpdir(), `ea-mig4-${process.pid}.db`);
+      let d4 = openDb(f4); seedDemo(d4);
+      const snap = (x) => JSON.stringify(['users', 'lesson_completions', 'quiz_attempts', 'hour_logs', 'checkoffs', 'guide_state'].map((t) => x.prepare(`SELECT * FROM ${t} ORDER BY rowid`).all()));
+      const before4 = snap(d4);
+      d4.exec('DROP TABLE game_plays'); d4.pragma('user_version = 4'); d4.close();
+      d4 = openDb(f4);
+      ok('migration v4 → v5: version bumped, game_plays added', d4.migration.migrated && d4.migration.from === 4 && d4.pragma('user_version', { simple: true }) === 5 &&
+        d4.prepare('PRAGMA table_info(game_plays)').all().map((c) => c.name).join() === 'id,user_id,game,score,level,correct,wrong,duration_ms,created_at');
+      ok('migration v4 → v5: all existing data preserved', snap(d4) === before4);
+      d4.close(); d4 = openDb(f4);
+      ok('migration v5 re-open is a no-op', d4.migration.migrated === false && snap(d4) === before4);
+      d4.close(); ['', '-wal', '-shm'].forEach((s) => { try { fs.unlinkSync(f4 + s); } catch (e) { /* ignore */ } });
+    }
     const uid = after.find((u) => u.role === 'learner').id;
+    d.prepare("INSERT INTO game_plays (user_id,game,score,level,created_at) VALUES (?,'ohms-shooter',10,1,datetime('now'))").run(uid);
     d.prepare("INSERT INTO guide_state (user_id,collapsed,dismissed,tour_done,milestones,updated_at) VALUES (?,0,0,1,'[]',datetime('now'))").run(uid);
     d.prepare('DELETE FROM sessions WHERE user_id=?').run(uid);
     d.prepare('DELETE FROM users WHERE id=?').run(uid);
     ok('guide_state cascades on user delete', !d.prepare('SELECT 1 FROM guide_state WHERE user_id=?').get(uid));
+    ok('game_plays cascades on user delete', !d.prepare('SELECT 1 FROM game_plays WHERE user_id=?').get(uid));
     d.close(); ['', '-wal', '-shm'].forEach((s) => { try { fs.unlinkSync(file + s); } catch (e) { /* ignore */ } });
   }
 
@@ -361,6 +379,47 @@ const ok = (name, cond, extra) => { if (cond) { pass++; console.log('PASS', name
     ok('prod boot: second boot creates nothing and prints no new link', !/\/#\/invite\/[0-9a-f]{64}/.test(s2.out) && /already issued/.test(s2.out));
     await stop(s2);
     fsM.rmSync(dir, { recursive: true, force: true });
+  }
+
+  // Lesson games: Ohm's Law Shooter scores (schema v5)
+  {
+    const fs = require('fs'), path = require('path');
+    const pl = client(); // Priya (Level 0 partial; M5 is not gated, so her M5 lessons are open)
+    ok('games: learner login', (await pl('POST', '/auth/login', { email: 'priya.patel@example.com', password: DEMO.learnerPassword })).status === 200);
+    ok('games: unauthenticated refused', (await anon('GET', '/games')).status === 401 && (await anon('POST', '/games/ohms-shooter/plays', { score: 1, level: 1 })).status === 401);
+    const gl = (await pl('GET', '/games')).body;
+    ok('games: list has the Ohm’s Law Shooter on M5', gl.games.length === 1 && gl.games[0].id === 'ohms-shooter' && gl.games[0].modules.includes('m5') && gl.games[0].stats.plays === 0);
+    ok('games: unknown game 404', (await pl('GET', '/games/nope/stats')).status === 404 && (await pl('POST', '/games/nope/plays', { score: 1, level: 1 })).status === 404);
+    const bad = await Promise.all([{ score: -1, level: 1 }, { score: 'x', level: 1 }, { score: 10, level: 0 }, { score: 10, level: 1.5 }, { score: 10, level: 3, correct: 2 }, { score: 10, level: 1, durationMs: -5 }]
+      .map((b) => pl('POST', '/games/ohms-shooter/plays', b)));
+    ok('games: invalid plays rejected (400)', bad.every((r) => r.status === 400), bad.map((r) => r.status));
+    const r1 = (await pl('POST', '/games/ohms-shooter/plays', { score: 900, level: 2, correct: 6, wrong: 3, durationMs: 41000 })).body;
+    ok('games: play saved, best + plays returned', r1.best === 900 && r1.plays === 1 && r1.newBest === true && r1.lessonCredited === null, r1);
+    const r2 = (await pl('POST', '/games/ohms-shooter/plays', { score: 400, level: 1, correct: 3, wrong: 3, durationMs: 20000 })).body;
+    ok('games: lower score keeps best, counts the play', r2.best === 900 && r2.plays === 2 && r2.newBest === false);
+    const r3 = (await pl('POST', '/games/ohms-shooter/plays', { score: 4800, level: 4, correct: 16, wrong: 3, durationMs: 120000 })).body;
+    ok('games: first time clearing level 3 credits the Ohm’s Law lesson', r3.best === 4800 && r3.lessonCredited === 'l1-ohms-law' &&
+      (await pl('GET', '/progress')).body.lessons['l1-ohms-law'].method === 'study');
+    const st2 = (await pl('GET', '/games/ohms-shooter/stats')).body;
+    ok('games: stats endpoint', st2.best === 4800 && st2.plays === 3 && st2.bestLevel === 4 && st2.last.score === 4800);
+    const art = (await pl('GET', '/games/ohms-shooter/art')).body;
+    ok('games: art endpoint lists only files that exist', typeof art.sprites === 'object' && (art.css === null || art.css === '/css/game-cartoon.css') &&
+      Object.values(art.sprites).every((u) => fs.existsSync(path.join(__dirname, '..', 'public', u))));
+    // A learner with Level 0 cleared: reaching level 4 marks the Ohm's Law lesson studied (same as "Mark as studied"); tests untouched
+    const alex = client();
+    await alex('POST', '/auth/login', { email: 'alex.rivera@example.com', password: DEMO.learnerPassword });
+    await alex('DELETE', '/lessons/l1-ohms-law/complete');
+    const a0 = (await alex('GET', '/progress')).body;
+    const lv3 = (await alex('POST', '/games/ohms-shooter/plays', { score: 3000, level: 3, correct: 12, wrong: 1, durationMs: 60000 })).body;
+    ok('games: level 3 reached (not cleared) → no lesson credit', lv3.lessonCredited === null && !(await alex('GET', '/progress')).body.lessons['l1-ohms-law']);
+    const lv4 = (await alex('POST', '/games/ohms-shooter/plays', { score: 5200, level: 4, correct: 15, wrong: 2, durationMs: 90000 })).body;
+    const a1 = (await alex('GET', '/progress')).body;
+    ok('games: clearing level 3 marks l1-ohms-law studied', lv4.lessonCredited === 'l1-ohms-law' && a1.lessons['l1-ohms-law'] && a1.lessons['l1-ohms-law'].method === 'study');
+    ok('games: credit does not touch written tests or module completion', JSON.stringify(a0.attempts) === JSON.stringify(a1.attempts) &&
+      a0.summary.modules.find((m) => m.id === 'm5').complete === a1.summary.modules.find((m) => m.id === 'm5').complete);
+    const lv4b = (await alex('POST', '/games/ohms-shooter/plays', { score: 100, level: 4, correct: 15, wrong: 3, durationMs: 90000 })).body;
+    ok('games: credit only once', lv4b.lessonCredited === null && lv4b.best === 5200 && lv4b.plays === 3);
+    ok('games: scores are per user', (await pl('GET', '/games/ohms-shooter/stats')).body.best === 4800);
   }
 
   // Logout invalidates session

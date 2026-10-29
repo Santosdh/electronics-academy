@@ -539,7 +539,7 @@
 
   window.EA_GUIDE = { config: GUIDE_CONFIG, defaults: DEFAULT_LINES, challenges: CHALLENGES, replayTour: replayTour,
     state: function () { return G.gs; }, open: function () { setOpen(true); },
-    effects: fxOn, celebrateLine: function (id) { return linesFor(id).celebrate; }, visible: function () { return !!(root && !root.hidden); }, isOpen: function () { return G.open; },
+    effects: fxOn, avatar: function () { return AVATAR; }, celebrateLine: function (id) { return linesFor(id).celebrate; }, visible: function () { return !!(root && !root.hidden); }, isOpen: function () { return G.open; },
     // Used by volt-fx.js when a locked module is clicked: Volt explains why (returns false if Volt is hidden).
     sayLocked: function (id) {
       var M = CUR.modulesById[id]; if (!root || root.hidden || !M) return false;

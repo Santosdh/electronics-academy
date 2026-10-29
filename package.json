@@ -8,7 +8,7 @@
     "start": "node server/server.js",
     "seed": "node scripts/seed.js --reset",
     "report": "node scripts/weekly-report.js --out reports/weekly-report.html",
-    "test": "node tests/solver.test.js && node tests/content.test.js && node tests/api.test.js",
+    "test": "node tests/solver.test.js && node tests/content.test.js && node tests/game.test.js && node tests/api.test.js",
     "test:browser": "node tests/e2e.js && node tests/mobile.js",
     "admin-invite": "node scripts/admin-invite.js",
     "backup-db": "node scripts/backup-db.js"

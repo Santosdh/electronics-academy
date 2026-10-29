@@ -5,6 +5,7 @@ const C = require('./curriculum');
 const A = require('./auth');
 const P = require('./progress');
 const G = require('./guide');
+const GM = require('./games');
 const D = require('../public/js/defects');
 const { buildWeeklyReport, renderReportHtml } = require('./report');
 
@@ -131,6 +132,11 @@ function createApp(db) {
   }));
 
   // Guide companion: per-user UI state (collapsed / dismissed / tour done / milestones celebrated) + optional module lines.
+  // Lesson games (schema v5 game_plays)
+  api.get('/games', A.requireAuth, wrap((req, res) => res.json({ games: GM.list(db, req.user.id) })));
+  api.get('/games/:id/stats', A.requireAuth, wrap((req, res) => { GM.gameOf(req.params.id); res.json(GM.stats(db, req.user.id, req.params.id)); }));
+  api.get('/games/:id/art', A.requireAuth, wrap((req, res) => { GM.gameOf(req.params.id); res.json(GM.art()); }));
+  api.post('/games/:id/plays', A.requireAuth, wrap((req, res) => res.json(GM.recordPlay(db, req.user.id, req.params.id, req.body))));
   api.get('/guide', A.requireAuth, wrap((req, res) => {
     const l = G.loadLines();
     res.json({ state: G.getState(db, req.user.id), lines: l.lines, linesSource: l.source });

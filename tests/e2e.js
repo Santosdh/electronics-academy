@@ -528,6 +528,67 @@ const ok = (n, c, x) => { if (c) { pass++; console.log('PASS', n); } else { fail
     await cp.context().close();
   }
 
+  // ---- lesson games: Ohm's Law Shooter (games/ohm-shooter.js + artist's game-cartoon.css) ----
+  {
+    const gp = await newPage();
+    await login(gp, 'morgan.lee@example.com', DEMO.learnerPassword);
+    ok('games: nav entry', await gp.isVisible('.topbar a[data-nav="games"]'));
+    await gp.goto(BASE + '/#/module/m5'); await gp.waitForSelector('.module-banner');
+    ok('games: M5 has a Play card', await gp.isVisible('.play-card[data-game="ohms-shooter"]'));
+    await gp.click('.topbar a[data-nav="games"]'); await gp.waitForSelector('.game-card');
+    ok('games: hub lists the shooter', /Ohm/.test(await text(gp, '.game-card')));
+    await gp.evaluate(() => { window.OHM_SHOOTER.speed = 0.25; window.OHM_SHOOTER.config = { seed: 7 }; });
+    await gp.goto(BASE + '/#/games/ohms-shooter'); await gp.waitForSelector('.osg-start');
+    await gp.waitForFunction(() => document.querySelector('.osg').dataset.art !== 'loading');
+    const S = () => gp.evaluate(() => window.OHM_SHOOTER.state());
+    // bubbles slide out from under the problem card; wait (at normal speed) until all four are below it, then slow the game down
+    const waitShown = async () => {
+      await gp.evaluate(() => { window.OHM_SHOOTER.speed = 1; });
+      await gp.waitForFunction(() => { const s = window.OHM_SHOOTER.state(), H = window.OHM_SHOOTER, p = document.querySelector('.osg-prompt');
+        const top = p.offsetTop + p.offsetHeight, size = parseFloat(getComputedStyle(document.querySelector('.osg')).getPropertyValue('--osg-size'));
+        return !s.resolving && H.targets().length === 4 && H.targets().every((t) => t.y > top - size * 0.1); });
+      await gp.evaluate(() => { window.OHM_SHOOTER.speed = 0.25; });
+    };
+    ok('games: cartoon art kit loaded', (await S()).art === 'cartoon' && await gp.evaluate(() => getComputedStyle(document.querySelector('.osg-volt')).backgroundImage.includes('volt-idle')));
+    await gp.click('.osg-start'); await gp.waitForFunction(() => window.OHM_SHOOTER.targets().length === 4);
+    const pr = await gp.evaluate(() => window.OHM_SHOOTER.problem());
+    ok('games: prompt shown with 4 bubbles, one correct', /= \?/.test(await text(gp, '.osg-prompt')) && pr.options.filter((o) => o.correct).length === 1 && (await gp.$$('.osg-target')).length === 4, pr);
+    await waitShown();
+    const wrongLab = pr.options.find((o) => !o.correct).label;
+    await gp.click(`.osg-target[aria-label="Shoot ${wrongLab}"]`, { force: true });
+    await gp.waitForFunction(() => window.OHM_SHOOTER.state().lives === 2);
+    ok('games: wrong hit costs a life and Volt gives a 1-line hint', await gp.isVisible('.osg-hint') && (await text(gp, '.osg-hint')).length <= 60 && await gp.$eval('.osg-volt', (v) => v.classList.contains('is-miss')));
+    await shot(gp, '97-ohm-shooter-e2e-wrong.png');
+    const rightLab = pr.options.find((o) => o.correct).label;
+    await gp.click(`.osg-target[aria-label="Shoot ${rightLab}"]`, { force: true });
+    await gp.waitForFunction(() => window.OHM_SHOOTER.state().score > 0);
+    ok('games: correct hit scores', (await S()).correct === 1);
+    // keyboard: wait for the next round, steer to the correct lane, fire
+    await waitShown();
+    const lane = await gp.evaluate(() => window.OHM_SHOOTER.targets().find((t) => t.correct).lane);
+    await gp.focus('.osg');
+    let cur = (await S()).lane;
+    while (cur !== lane) { await gp.keyboard.press(cur < lane ? 'ArrowRight' : 'ArrowLeft'); cur = (await S()).lane; }
+    await gp.keyboard.press('Space');
+    await gp.waitForFunction(() => window.OHM_SHOOTER.state().correct === 2);
+    ok('games: arrows + space shoot the bubble in Volt\'s lane', (await S()).streak === 2);
+    await gp.keyboard.press('p'); ok('games: P pauses', (await S()).status === 'paused');
+    await gp.keyboard.press('p');
+    // lose the remaining lives -> game over is saved
+    for (let i = 0; i < 2; i++) {
+      await gp.waitForFunction(() => { const s = window.OHM_SHOOTER.state(); return !s.resolving && !s.shooting && window.OHM_SHOOTER.targets().some((t) => !t.correct); });   // a wrong hit doesn't end the round
+      const w = await gp.evaluate(() => window.OHM_SHOOTER.targets().find((t) => !t.correct).label);
+      await gp.evaluate((w) => window.OHM_SHOOTER.hit(w), w);
+      await gp.waitForFunction((n) => window.OHM_SHOOTER.state().lives === n, 1 - i);
+    }
+    await gp.waitForFunction(() => window.OHM_SHOOTER.saved);
+    const st = await (await gp.request.get(BASE + '/api/games/ohms-shooter/stats')).json();
+    ok('games: game over saves best score and play count', await gp.isVisible('.osg-final') && st.plays === 1 && st.best === (await S()).score && st.best > 0, st);
+    await gp.goto(BASE + '/#/dashboard'); await gp.waitForSelector('.hero');
+    ok('games: leaving the game restores the guide', !(await gp.evaluate(() => document.body.classList.contains('osg-playing'))));
+    await gp.context().close();
+  }
+
   // ---- admin ----
   const ap = await newPage();
   await login(ap, DEMO.admin.email, DEMO.admin.password);

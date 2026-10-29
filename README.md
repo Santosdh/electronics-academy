@@ -45,6 +45,8 @@ Schema v3 (the guide) adds only a `guide_state` table (one row per user, deleted
 start and leaves existing users, passwords, progress and hours untouched.
 Schema v4 adds only one column, `guide_state.fx_enabled` (default 1 = on), for the "Lightning effects" switch. The v3 → v4
 upgrade also happens on start and changes no existing data.
+Schema v5 adds only a `game_plays` table (one row per finished game: user, game, score, level, right/wrong counts,
+duration; deleted with the user). The v4 → v5 upgrade happens on start and changes no existing data.
 
 ### Practical sign-offs removed (Oct 2026)
 
@@ -186,12 +188,44 @@ Covers the 7 days ending at `--end`: team summary (learners, active, average com
 Email-safe HTML (tables + inline styles). Admins can also use `GET /api/admin/reports/weekly?format=html|json|both&end=&tz=`
 or **Team → Weekly report**. Nothing is emailed.
 
+## Games
+
+**Games** (top nav, and the ☰ menu on phones) lists the lesson games; module M5 shows a **Play** card on the Ohm's law and
+power lessons. The first game is the **Ohm's Law Shooter** (`#/games/ohms-shooter`):
+
+- A problem card at the top (for example `V = 16 V · R = 8 Ω · I = ?`); four answer bubbles fall. Shoot the right one:
+  click/tap a bubble, or move Volt with ← → and fire with Space (P pauses).
+- Hitting a wrong bubble, or letting the right one land, costs one of 3 lives, and Volt says a one-line hint.
+- Each right answer scores 100 × level × streak multiplier (×1, +1 for every 3 in a row, up to ×5). Levels (5 right answers each) speed up: L1 find I, L2 find V or R,
+  L3 adds prefixes (mA, kΩ, …), L4+ power (P = V·I, I²R, V²/R).
+- Answers are exact; wrong bubbles come from common mistakes (upside-down ratio, multiplied instead of divided, prefix slips).
+- Reaching level 4 (clearing level 3) marks the *Ohm's law* lesson as studied, if it wasn't already. Test and completion
+  rules are unchanged.
+- Each player's best score and play count are stored (`game_plays`).
+- Honours `prefers-reduced-motion` and the "Lightning effects" switch (no bolt, pops or shake). Sound is off by default.
+
+Code: `public/js/games/ohm-problems.js` (problem generator, shared with the server), `public/js/games/ohm-shooter.js`
+(the game), `public/css/games.css`, `server/games.js`. API: `GET /api/games` · `GET /api/games/:id/stats` ·
+`GET /api/games/:id/art` · `POST /api/games/:id/plays {score, level, correct, wrong, durationMs}`.
+
+**Art.** The visuals come from the artist's cartoon kit (`public/css/game-cartoon.css`, `public/img/game/*.svg`; not
+edited by the game code). The game builds the kit's markup (`gc-stage`, `gc-hud`, `gc-target gc-a|gc-v|gc-ohm`,
+`gc-volt is-shoot|is-hit|is-miss`, `gc-pop`, …) and adds its own `osg-*` classes for layout. Notes:
+- The kit has no power bubble: **W answers reuse the yellow volt bubble** (`gc-v`) with a "W" tab (`.osg-unit-w`).
+- The falling motion is driven by the game loop (`--x`/`--y`), not the kit's `.gc-fall` animation.
+- If the kit files are missing, `/api/games/:id/art` reports that and the game uses a plain built-in look.
+- Test hooks: `window.OHM_SHOOTER` (`state()`, `targets()`, `hit(label)`, `speed`, `config`).
+
+`node tests/game-capture.js` records the demo videos and stills (temp DB, port 4391). It shortens levels to 3 right answers
+and runs the game clock at 1.8× so a clip reaches level 4 in under 30 s.
+
 ## API summary
 
 Auth: `POST /api/auth/login` · `POST /api/auth/logout` · `POST /api/auth/change-password` · `GET /api/auth/invite/:token` · `POST /api/auth/accept-invite`
 Learner: `GET /api/me` · `GET /api/progress` · `POST|DELETE /api/lessons/:id/complete` · `POST /api/quiz/start`
 (`kind`: `lesson`, `testout-lesson`, `module`, `defect-practice`) · `POST /api/quiz/:sessionId/submit` ·
 `POST /api/hours {moduleId, hours, workDate, note}` · `DELETE /api/hours/:id`
+Games: `GET /api/games` · `GET /api/games/:id/stats` · `GET /api/games/:id/art` · `POST /api/games/:id/plays`
 Admin: `GET /api/admin/users` · `GET /api/admin/users/:id` · `POST /api/admin/users` · `POST /api/admin/users/:id/invite` ·
 `POST /api/admin/users/:id/reset-password` ·
 `POST /api/admin/users/:id/hours` · `GET /api/admin/reports/weekly`
@@ -272,7 +306,7 @@ RC/RL phase, RC charging, half- and full-wave rectifiers.
 ## Tests
 
 ```bash
-npm test               # solver maths, curriculum structure, full API flow (temp DB)
+npm test               # solver maths, curriculum structure, game problems, full API flow (temp DB)
 npm run test:browser   # tests/e2e.js + tests/mobile.js: headless Chrome on a throwaway DB, screenshots → screenshots/
 ```
 Browser tests use `/usr/bin/google-chrome` (`CHROME_PATH` to override; `SHOTS_DIR` to change the screenshot folder).
