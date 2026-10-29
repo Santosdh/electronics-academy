@@ -101,7 +101,8 @@ const ok = (n, c, x) => { if (c) { pass++; console.log('PASS', n); } else { fail
   await page.reload(); await page.waitForSelector('.hero'); await settleGuide(page, true);
   ok('guide: tour does not return after skipping', !(await page.$('#guideTour')));
   ok('guide: avatar on dashboard', await page.isVisible('#guideAvatar'));
-  ok('guide: desktop dashboard bubble recommends next module + pending M6 check-off', await page.isVisible('#guideBubble') && /Next up: M15/.test(await guideText(page)) && /M6 is waiting on 1 check-off/.test(await guideText(page)), await guideText(page));
+  ok('guide: desktop dashboard bubble recommends next module, no check-off talk', await page.isVisible('#guideBubble') && /Next up: M15/.test(await guideText(page)) && !/check-off|instructor/i.test(await guideText(page)), await guideText(page));
+  ok('dashboard has no check-off stat', !/check-off/i.test(await text(page, '#app')) && /Lessons done/.test(await text(page, '.stats')));
   ok('guide: dashboard bubble has a link to the module', !!(await page.$('#guideActions a[href="#/module/m15"]')));
   ok('guide: does not cover key dashboard controls', (await guideCovers(page)).length === 0, await guideCovers(page));
   await shot(page, '38-guide-dashboard.png');
@@ -117,13 +118,14 @@ const ok = (n, c, x) => { if (c) { pass++; console.log('PASS', n); } else { fail
   await shot(page, '03-curriculum.png', true);
 
   await page.goto(BASE + '/#/module/m6'); await page.waitForSelector('.module-banner');
-  ok('M6 awaiting check-offs (written passed, 1 pending)', /awaiting/i.test(await text(page, '.module-banner')), await text(page, '.module-banner'));
-  ok('M6 check-off list shows signer', (await page.$$('.checkoffs .co-item')).length === 3 && /Dwight Santos/.test(await text(page, '.checkoffs')));
+  ok('M6 complete on its passed written test', /Complete/.test(await text(page, '.module-banner')) && /Module complete/.test(await text(page, '.completion')), await text(page, '.module-banner'));
+  const m6Txt = await text(page, '#app');
+  ok('M6 page has no check-off / labs / sign-off UI', !(await page.$('.checkoffs, .co-item')) && !/check-off|sign-off|instructor/i.test(m6Txt) && !(await page.$$eval('#app h2, #app h3', (hs) => hs.some((h) => /^\W*Labs\b/i.test(h.textContent.trim())))), (m6Txt.match(/.{0,60}(check-off|sign-off|instructor).{0,60}/i) || [''])[0]);
   await shot(page, '04-level.png', true);
   ok('guide: tip dot on module page (no auto-open)', await page.isVisible('#guideAvatar') && !(await page.isVisible('#guideBubble')) && await page.$eval('#guide', (g) => g.classList.contains('has-tip')));
   await openGuide(page);
   const m6Tip = await guideText(page);
-  ok('guide: module page explains contents + completion checklist', /Kirchhoff/.test(m6Tip) && /To complete M6/.test(m6Tip) && /Written test ≥ 80%/.test(m6Tip) && /2\/3 practical check-offs/.test(m6Tip) && /Predict and verify 3 node voltages/.test(m6Tip), m6Tip);
+  ok('guide: module page explains contents + completion checklist', /Kirchhoff/.test(m6Tip) && /To complete M6/.test(m6Tip) && /Written test ≥ 80%/.test(m6Tip) && !/check-off|instructor/i.test(m6Tip), m6Tip);
   ok('guide: module page offers tip, common mistake and a simulator challenge', /Tip:/.test(m6Tip) && /Common mistake:/.test(m6Tip) && !!(await page.$('#guideActions a[href^="#/simulator?preset="]')));
   const GL = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'curriculum-source', 'guide-lines.json'), 'utf8')); } catch (e) { return null; } })();
   ok('guide: uses curriculum-source/guide-lines.json when present (intro + one of its tips + one of its mistakes)', !GL || (m6Tip.includes(GL.m6.intro) && GL.m6.tips.some((t) => m6Tip.includes(t)) && GL.m6.mistakes.some((t) => m6Tip.includes(t))), m6Tip);
@@ -131,9 +133,9 @@ const ok = (n, c, x) => { if (c) { pass++; console.log('PASS', n); } else { fail
   await shot(page, '39-guide-module.png');
   await page.click('#guideClose');
   ok('guide: collapse persists', (await (await page.request.get(BASE + '/api/guide')).json()).state.collapsed === true);
-  await page.$eval('.checkoffs', (e) => e.scrollIntoView({ block: 'start' }));
+  await page.$eval('.completion', (e) => e.scrollIntoView({ block: 'start' }));
   await page.evaluate(() => window.scrollBy(0, -70));
-  await shot(page, '28-module-checkoffs.png');
+  await shot(page, '28-module-completion.png');
 
   await page.goto(BASE + '/#/lesson/l1-ohms-law'); await page.waitForSelector('.lesson-body');
   ok('lesson renders formula', (await page.$$('.lesson .formula')).length >= 1);
@@ -165,7 +167,7 @@ const ok = (n, c, x) => { if (c) { pass++; console.log('PASS', n); } else { fail
   await shot(page, '07-testout-intro.png');
   await runQuiz(page, { shotAt: 0, shotName: '08-testout-question.png' });
   ok('passing test-out grants remaining lessons', /completed via test-out/.test(await text(page, '.quiz-result')));
-  ok('test-out result says check-offs still required', /check-off/.test(await text(page, '.quiz-result')));
+  ok('test-out result says the module is complete (no check-offs)', /M7 is complete/.test(await text(page, '.quiz-result')) && !/check-off/i.test(await text(page, '.quiz-result')), await text(page, '.quiz-result'));
   await shot(page, '09-testout-result.png');
   await page.goto(BASE + '/#/module/m7'); await page.waitForSelector('.module-banner');
   ok('module page shows tested-out badges', (await page.$$('.lesson-list .badge.testout')).length >= 2);
@@ -287,7 +289,7 @@ const ok = (n, c, x) => { if (c) { pass++; console.log('PASS', n); } else { fail
   const sp = await newPage();
   await login(sp, 'sam.chen@example.com', DEMO.learnerPassword);
   const samTip = await guideText(sp);
-  ok('guide: Sam is pointed at Level 0 / M1 with the failed check-off', /Level 0 comes first/.test(samTip) && /M1/.test(samTip) && /redo|Still needed/.test(samTip), samTip);
+  ok('guide: Sam (M1 done) is pointed at Level 0 / M2', /Level 0 comes first/.test(samTip) && /Next up: M2/.test(samTip) && !/check-off/i.test(samTip), samTip);
   await sp.goto(BASE + '/#/module/m15'); await sp.waitForSelector('.module-banner');
   ok('Sam: M15 locked until Level 0', /Locked/i.test(await text(sp, '#app')) && (await sp.$$('.hours-form')).length === 0);
   await shot(sp, '34-module-locked.png');
@@ -535,30 +537,33 @@ const ok = (n, c, x) => { if (c) { pass++; console.log('PASS', n); } else { fail
   await ap.click('text=Priya Patel'); await ap.waitForSelector('.admin-mods');
   await shot(ap, '15-admin-member.png', true);
   const alexId = db.prepare("SELECT id FROM users WHERE email='alex.rivera@example.com'").get().id;
-  await ap.goto(BASE + `/#/admin/user/${alexId}?module=m6`); await ap.waitForSelector('#signCard .co-form');
-  const pending = await ap.$$eval('#signCard .co-item', (els) => els.filter((e) => !e.classList.contains('pass') && e.querySelector('.co-form')).map((e) => e.querySelector('.co-form').dataset.item));
-  ok('admin sees 1 pending M6 check-off for Alex', pending.length === 1, pending);
-  const form = `#signCard .co-form[data-item="${pending[0]}"]`;
-  await ap.fill(form + ' input[name=note]', 'Thevenin equivalent measured within 3% of prediction.');
-  await ap.$eval('#signCard', (e) => e.scrollIntoView({ block: 'start' }));
-  await shot(ap, '35-admin-signoff.png');
-  await ap.click(form + ' button'); await ap.waitForTimeout(700);
-  const prog = await (await ap.request.get(BASE + `/api/admin/users/${alexId}`)).json();
-  const m6 = prog.progress.summary.modules.find((m) => m.id === 'm6');
-  ok('signing last check-off completes M6', m6 && m6.complete && m6.checkoffs.passed === 3, m6 && m6.status);
-  ok('signature recorded with signer + note', m6 && m6.checkoffs.items.some((i) => i.signerName === DEMO.admin.name && /3%/.test(i.note || '')));
+  await ap.goto(BASE + `/#/admin/user/${alexId}?module=m6`); await ap.waitForSelector('#moduleCard');
+  ok('admin member page: no sign-off controls or Check-offs column', !(await ap.$('#signCard, .co-form, .co-list')) && !/check-off|sign check/i.test(await text(ap, '#app')) && /Lessons/.test(await text(ap, '.admin-mods thead')));
+  ok('admin module detail shows M6 complete via written test', /Complete/.test(await text(ap, '#moduleCard')) && /Written test: passed/.test(await text(ap, '#moduleCard')), await text(ap, '#moduleCard'));
+  ok('retired check-off endpoint answers 410', (await ap.request.post(BASE + `/api/admin/users/${alexId}/checkoffs`, { data: { moduleId: 'm6', itemId: 'x', status: 'pass', performedOn: '2026-10-20' } })).status() === 410);
+  await ap.$eval('#moduleCard', (e) => e.scrollIntoView({ block: 'start' }));
+  await shot(ap, '35-admin-module-detail.png');
+  // Alex passes the M8 written test (test-out) → M8 completes immediately, no sign-off
+  const m8 = await page.evaluate(async () => {
+    const j = (r) => r.json(), H = { 'Content-Type': 'application/json' };
+    const st = await fetch('/api/quiz/start', { method: 'POST', headers: H, body: JSON.stringify({ kind: 'module', moduleId: 'm8' }) }).then(j);
+    const answers = {}; st.questionIds.forEach((id) => { answers[id] = window.CURRICULUM.questionsById[id].answer; });
+    const sub = await fetch('/api/quiz/' + st.sessionId + '/submit', { method: 'POST', headers: H, body: JSON.stringify({ answers }) }).then(j);
+    return sub.progress.summary.modules.find((m) => m.id === 'm8');
+  });
+  ok('passing the written test completes M8 straight away', m8 && m8.complete && m8.status === 'complete', m8 && m8.status);
   await ap.selectOption('#admHours select[name=moduleId]', 'm6');
-  await ap.fill('#admHours input[name=hours]', '3'); await ap.fill('#admHours input[name=note]', 'Bench review with instructor');
+  await ap.fill('#admHours input[name=hours]', '3'); await ap.fill('#admHours input[name=note]', 'Bench review with admin');
   await ap.click('#admHours button'); await ap.waitForTimeout(600);
-  ok('admin logs hours for learner', /Bench review with instructor/.test(await text(ap, '#app')));
+  ok('admin logs hours for learner', /Bench review with admin/.test(await text(ap, '#app')));
   await page.goto(BASE + '/#/'); await page.reload(); await page.waitForSelector('.hero'); await settleGuide(page);
   await page.waitForSelector('#guide.is-celebrating', { timeout: 5000 }).catch(() => null);
   const cel = await guideText(page);
-  ok('guide: celebrates the newly completed module', /M6 DC Circuit Analysis/.test(cel) && /complete!/.test(cel) && await page.isVisible('#guideBubble'), cel);
-  ok('guide: milestone saved so it is not celebrated twice', (await (await page.request.get(BASE + '/api/guide')).json()).state.milestones.includes('mod:m6'));
-  const celRun = await page.evaluate(() => window.VOLT_CELEBRATE && window.VOLT_CELEBRATE.runs.filter((r) => r.id === 'm6').pop());
-  const m6line = ((await (await page.request.get(BASE + '/api/guide')).json()).lines.m6 || {}).celebrate;
-  ok('guide: completion plays the full-screen celebration (banner + one effect)', celRun && celRun.kind === 'module' && /M6 UNLOCKED/.test(celRun.big) && ['fireworks', 'circuit', 'volt', 'scope'].includes(celRun.effect), celRun);
+  ok('guide: celebrates the newly completed module', /M8 /.test(cel) && /complete!/.test(cel) && await page.isVisible('#guideBubble'), cel);
+  ok('guide: milestone saved so it is not celebrated twice', (await (await page.request.get(BASE + '/api/guide')).json()).state.milestones.includes('mod:m8'));
+  const celRun = await page.evaluate(() => window.VOLT_CELEBRATE && window.VOLT_CELEBRATE.runs.filter((r) => r.id === 'm8').pop());
+  const m6line = ((await (await page.request.get(BASE + '/api/guide')).json()).lines.m8 || {}).celebrate;
+  ok('guide: completion plays the full-screen celebration (banner + one effect)', celRun && celRun.kind === 'module' && /M8 UNLOCKED/.test(celRun.big) && ['fireworks', 'circuit', 'volt', 'scope'].includes(celRun.effect), celRun);
   ok('guide: victory-lap line is the module\'s "celebrate" line (also in the bubble)', !m6line || (celRun.line === m6line && cel.includes(m6line)), { line: celRun && celRun.line, m6line });
   await shot(page, '44-guide-celebration.png');
 

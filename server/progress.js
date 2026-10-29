@@ -1,9 +1,8 @@
 // Progress model for the module-based curriculum, shared by the API, seed script and weekly report.
 //
-// A core module is COMPLETE when its written test is passed AND every required practical check-off
-// has a latest sign-off of "pass". Level 0 (Modules 1 & 2) must be complete before Modules 15–20
-// unlock. Practical check-offs for Modules 4+ can only be signed once the Module 1 safety quiz is
-// passed ("nothing is powered until the Module 1 safety quiz is passed at 100%").
+// A module is COMPLETE when its written test is passed (or tested out). There are no instructor /
+// admin practical sign-offs any more: the old `checkoffs` table is kept for history but is no longer
+// read. Level 0 (Modules 1 & 2, 100% pass mark) must be complete before Modules 15–20 unlock.
 const C = require('./curriculum');
 const D = require('../public/js/defects');
 
@@ -25,21 +24,13 @@ function loadState(db, userId) {
   const attempts = db.prepare(`SELECT id, kind, module_id AS moduleId, lesson_id AS lessonId, mode, required_percent AS requiredPercent,
       score, total, percent, passed, detail, created_at AS createdAt FROM quiz_attempts WHERE user_id=? ORDER BY created_at, id`).all(userId)
     .map((a) => Object.assign(a, { passed: !!a.passed, detail: a.detail ? JSON.parse(a.detail) : null }));
-  const checkoffRows = db.prepare(`SELECT id, module_id AS moduleId, item_id AS itemId, status, performed_on AS performedOn, note, standard,
-      signed_by AS signedBy, signer_name AS signerName, signed_at AS signedAt FROM checkoffs WHERE user_id=? ORDER BY signed_at, id`).all(userId);
   const hours = db.prepare(`SELECT h.id, h.module_id AS moduleId, h.hours, h.work_date AS workDate, h.note, h.logger_role AS loggerRole,
       h.logged_by AS loggedBy, u.name AS loggedByName, h.created_at AS createdAt
       FROM hour_logs h LEFT JOIN users u ON u.id=h.logged_by WHERE h.user_id=? ORDER BY h.work_date, h.id`).all(userId);
-  return { lessons, attempts, checkoffRows, hours };
+  return { lessons, attempts, hours };
 }
 
 // ---------- Derivations ----------
-function latestCheckoffs(rows) {
-  const latest = {};
-  rows.forEach((r) => { latest[r.itemId] = r; }); // rows are in signed order
-  return latest;
-}
-
 function writtenStatus(m, attempts) {
   const tests = attempts.filter((a) => a.kind === 'module' && a.moduleId === m.id);
   const passedAttempt = tests.find((a) => a.passed) || null;
@@ -55,22 +46,13 @@ function writtenStatus(m, attempts) {
 
 function moduleSummary(m, st, ctx) {
   const done = m.lessons.filter((l) => st.lessons[l.id]);
-  const latest = ctx.latest;
-  const items = m.checkoffs.map((c) => {
-    const r = latest[c.id];
-    return { id: c.id, title: c.title, kind: c.kind, standard: c.standard, required: c.required,
-      status: r ? r.status : 'pending', performedOn: r ? r.performedOn : null, signedAt: r ? r.signedAt : null,
-      signerName: r ? r.signerName : null, note: r ? r.note : null, history: st.checkoffRows.filter((x) => x.itemId === c.id).length };
-  });
-  const required = items.filter((i) => i.required);
   const written = writtenStatus(m, st.attempts);
-  const checkoffsDone = required.every((i) => i.status === 'pass');
-  const complete = written.passed && checkoffsDone;
+  const complete = written.passed;
   const locked = !!m.gated && !ctx.gateCleared;
   const logged = st.hours.filter((h) => h.moduleId === m.id).reduce((a, h) => a + h.hours, 0);
   const defect = m.defectExercise ? st.attempts.filter((a) => a.kind === 'defect-practice' && a.moduleId === m.id) : null;
-  const started = done.length > 0 || written.attempts > 0 || items.some((i) => i.status !== 'pending') || logged > 0;
-  const completedAt = complete ? [written.passedAt].concat(required.map((i) => i.signedAt)).sort().pop() : null;
+  const started = done.length > 0 || written.attempts > 0 || logged > 0;
+  const completedAt = complete ? written.passedAt : null;
   return {
     id: m.id, number: m.number, track: m.track, phase: m.phase || null, title: m.title, hours: m.hours,
     locked, safety: !!m.safety, gated: !!m.gated,
@@ -78,22 +60,19 @@ function moduleSummary(m, st, ctx) {
       studied: done.filter((l) => st.lessons[l.id].method === 'study').length,
       testedOut: done.filter((l) => st.lessons[l.id].method === 'test-out').length },
     written: Object.assign(written, { passPercent: m.passPercent, testOutPercent: m.testOutPercent }),
-    checkoffs: { required: required.length, passed: required.filter((i) => i.status === 'pass').length,
-      failed: required.filter((i) => i.status === 'fail').length, items },
     loggedHours: round1(logged),
     defectPractice: defect ? { attempts: defect.length, bestPercent: defect.length ? Math.max.apply(null, defect.map((a) => a.percent)) : null,
       passed: defect.some((a) => a.passed) } : null,
     complete, completedAt,
-    status: locked ? 'locked' : complete ? 'complete' : written.passed ? 'awaiting-checkoffs' : started ? 'in-progress' : 'not-started'
+    status: locked ? 'locked' : complete ? 'complete' : started ? 'in-progress' : 'not-started'
   };
 }
 
 function summarize(st) {
-  const latest = latestCheckoffs(st.checkoffRows);
   // Level 0 first (Modules 1 & 2 are never gated themselves).
-  const pre = { latest, gateCleared: false };
+  const pre = { gateCleared: false };
   const m1 = moduleSummary(C.modulesById.m1, st, pre), m2 = moduleSummary(C.modulesById.m2, st, pre);
-  const ctx = { latest, gateCleared: m1.complete && m2.complete };
+  const ctx = { gateCleared: m1.complete && m2.complete };
   const modules = C.modules.map((m) => moduleSummary(m, st, ctx));
   const advanced = C.advanced.map((m) => moduleSummary(m, st, ctx));
   const complete = modules.filter((m) => m.complete);
@@ -113,25 +92,21 @@ function summarize(st) {
   const loggedCore = st.hours.filter((h) => coreModuleIds.has(h.moduleId)).reduce((a, h) => a + h.hours, 0);
   const loggedAdv = st.hours.filter((h) => !coreModuleIds.has(h.moduleId)).reduce((a, h) => a + h.hours, 0);
   const lastActivity = [].concat(Object.values(st.lessons).map((l) => l.completedAt), st.attempts.map((a) => a.createdAt),
-    st.checkoffRows.map((c) => c.signedAt), st.hours.map((h) => h.createdAt)).sort().pop() || null;
+    st.hours.map((h) => h.createdAt)).sort().pop() || null;
   const advLessons = C.advanced.reduce((a, m) => a.concat(m.lessons), []);
   return {
     coreHours: C.coreHours, hoursCredited: credited, percent: round1(credited / C.coreHours * 100),
     modulesComplete: complete.length, modulesTotal: modules.length,
-    modulesAwaitingCheckoffs: modules.filter((m) => m.status === 'awaiting-checkoffs').length,
     lessonsDone: coreDone.length, lessonsTotal: coreLessons.length,
     studied: coreDone.filter((l) => st.lessons[l.id].method === 'study').length,
     testedOut: coreDone.filter((l) => st.lessons[l.id].method === 'test-out').length,
     loggedHours: round1(loggedCore),
-    checkoffsPassed: modules.reduce((a, m) => a + m.checkoffs.passed, 0),
-    checkoffsRequired: modules.reduce((a, m) => a + m.checkoffs.required, 0),
     averageWrittenPercent: tests.length ? round1(tests.reduce((s, a) => s + a.percent, 0) / tests.length) : null,
     firstAttemptPassRate: attempted.length ? Math.round(attempted.filter((m) => m.written.firstAttemptPassed).length / attempted.length * 100) : null,
     currentModule: current ? { id: current.id, number: current.number, title: current.title, status: current.status } : null,
     safety: {
-      m1Written: m1.written.passed, m1Complete: m1.complete, m2Written: m2.written.passed, m2Complete: m2.complete,
-      gateCleared: ctx.gateCleared, powerAllowed: m1.written.passed,
-      status: ctx.gateCleared ? 'cleared' : m1.written.passed ? 'partial' : 'not-cleared'
+      m1Complete: m1.complete, m2Complete: m2.complete, gateCleared: ctx.gateCleared,
+      status: ctx.gateCleared ? 'cleared' : m1.complete || m2.complete ? 'partial' : 'not-cleared'
     },
     phases, modules,
     advanced: { modules: advanced, lessonsDone: advLessons.filter((l) => st.lessons[l.id]).length, lessonsTotal: advLessons.length,
@@ -143,7 +118,7 @@ function summarize(st) {
 
 function getProgress(db, userId) {
   const st = loadState(db, userId);
-  return { lessons: st.lessons, attempts: st.attempts.slice().reverse(), checkoffs: st.checkoffRows.slice().reverse(),
+  return { lessons: st.lessons, attempts: st.attempts.slice().reverse(),
     hours: st.hours.slice().reverse(), summary: summarize(st) };
 }
 
@@ -229,23 +204,6 @@ function markStudied(db, userId, lessonId, when) {
 }
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-function signCheckoff(db, { userId, moduleId, itemId, status, performedOn, note, signer, when }) {
-  const m = moduleOf(moduleId);
-  const item = m.checkoffs.find((c) => c.id === itemId);
-  if (!item) throw httpError(404, 'Unknown check-off item');
-  if (status !== 'pass' && status !== 'fail') throw httpError(400, 'Result must be pass or fail.');
-  if (!DATE_RE.test(String(performedOn || ''))) throw httpError(400, 'Enter the date the practical was performed (YYYY-MM-DD).');
-  if (signer.id === userId) throw httpError(400, 'You cannot sign off your own practical.');
-  const s = summarize(loadState(db, userId));
-  assertUnlocked(s, m);
-  if (m.number >= 4 && !s.safety.powerAllowed)
-    throw httpError(423, 'Module 1 safety quiz not yet passed at 100% — nothing is powered at the bench, so this practical cannot be signed off yet.');
-  const info = db.prepare(`INSERT INTO checkoffs (user_id,module_id,item_id,status,performed_on,note,standard,signed_by,signer_name,signed_at)
-    VALUES (?,?,?,?,?,?,?,?,?,?)`).run(userId, m.id, item.id, status, performedOn, String(note || '').slice(0, 1000) || null,
-    item.standard, signer.id, signer.name, when || nowIso());
-  return Number(info.lastInsertRowid);
-}
-
 function logHours(db, { userId, moduleId, hours, workDate, note, logger, when }) {
   const m = moduleOf(moduleId);
   const h = Number(hours);
@@ -270,5 +228,5 @@ function recordDefectExercise(db, userId, sessionRow, answers, when) {
   return Object.assign({ attemptId: Number(info.lastInsertRowid) }, r);
 }
 
-module.exports = { pickQuestions, grade, requirement, recordAttempt, markStudied, signCheckoff, logHours, getProgress, summarize,
+module.exports = { pickQuestions, grade, requirement, recordAttempt, markStudied, logHours, getProgress, summarize,
   loadState, startDefectExercise, recordDefectExercise, assertUnlocked, httpError, nowIso };

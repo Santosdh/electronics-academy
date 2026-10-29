@@ -1,6 +1,8 @@
 // SQLite database setup (better-sqlite3, synchronous API) with versioned migrations.
 //   v1 — level-based progress (Electronics Academy v1)
 //   v2 — curriculum restructure: module-based progress, practical check-offs, hours log.
+//   (Oct 2026: practical check-offs were removed from the program. The `checkoffs` table is kept so no
+//    data is lost, but the app no longer reads or writes it; completion = written test passed.)
 //        v1 progress tables are kept as legacy_v1_* (nothing is dropped); lesson completions are
 //        carried over because lesson ids are unchanged. Users and sessions are untouched.
 const path = require('path');
@@ -65,7 +67,7 @@ CREATE TABLE IF NOT EXISTS quiz_attempts (
   detail TEXT,                        -- JSON extra result data (defect exercise)
   created_at TEXT NOT NULL
 );
-CREATE TABLE IF NOT EXISTS checkoffs (   -- practical / lab sign-offs (history; latest row per item wins)
+CREATE TABLE IF NOT EXISTS checkoffs (   -- LEGACY, unused since Oct 2026: old practical sign-offs kept for history
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   module_id TEXT NOT NULL,

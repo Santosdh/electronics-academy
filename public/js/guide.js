@@ -204,33 +204,23 @@
 
   // ---------------- context-aware content ----------------
   function coreMods(p) { return p.summary.modules.filter(function (m) { return m.track !== 'advanced'; }); }
-  function pendingItems(ms) { return (ms.checkoffs.items || []).filter(function (i) { return i.required && i.status !== 'pass'; }); }
-  function itemList(items) { return items.slice(0, 3).map(function (i) { return '“' + esc(i.title) + '”' + (i.status === 'fail' ? ' (redo — last attempt failed)' : ''); }).join(', ') + (items.length > 3 ? ' and ' + (items.length - 3) + ' more' : ''); }
   function allStudied(m) { var p = app().progress; return m.lessons.every(function (l) { var s = p.lessons[l.id]; return s && s.method === 'study'; }); }
 
-  // Dashboard: which module to do next (Level 0 gate, locks, test-out, pending check-offs).
+  // Dashboard: which module to do next (Level 0 gate, locks, test-out).
   function recommendation(p) {
     if (!p) return null;
     var sum = p.summary, mods = coreMods(p), parts = [], actions = [];
-    var awaiting = mods.filter(function (m) { return m.status === 'awaiting-checkoffs'; });
-    var failed = mods.filter(function (m) { return m.checkoffs.failed > 0 && !m.complete; });
     if (!sum.safety.gateCleared) {
       var l0 = ['m1', 'm2'].map(function (id) { return modSum(p, id); }).filter(function (m) { return !m.complete; });
-      var t = l0.find(function (m) { return !m.written.passed; }) || l0[0], M = CUR.modulesById[t.id];
-      parts.push('<strong>Level 0 comes first.</strong> Modules 1 (Safety) and 2 (ESD) need <strong>100%</strong> on the written test — test-out is also only at 100% — plus their check-offs. Modules 15–20 unlock after that.');
-      if (!t.written.passed) {
-        parts.push('Next up: <strong>' + modLabel(M) + ' · ' + esc(M.title) + '</strong> (' + t.lessons.done + '/' + t.lessons.total + ' lessons done).' +
-          (t.lessons.done === 0 ? ' Already know it cold? You can test out — but only a perfect score counts.' : ''));
-        actions.push(link('#/module/' + M.id, 'Open ' + modLabel(M) + ' →', 'primary'));
-        if (t.lessons.done === 0) actions.push(link('#/quiz/module/' + M.id, 'Test out at 100%'));
-      } else {
-        var pi = pendingItems(t);
-        parts.push(modLabel(M) + ' written test: passed ✅. Still needed: ' + pi.length + ' check-off' + (pi.length === 1 ? '' : 's') + ' — ' + itemList(pi) + '. Ask your instructor to sign ' + (pi.length === 1 ? 'it' : 'them') + '.');
-        actions.push(link('#/module/' + M.id, 'See ' + modLabel(M) + ' check-offs', 'primary'));
-      }
+      var t = l0[0], M = CUR.modulesById[t.id];
+      parts.push('<strong>Level 0 comes first.</strong> Modules 1 (Safety) and 2 (ESD) need <strong>100%</strong> on the written test — test-out is also only at 100%. Modules 15–20 unlock after that.');
+      parts.push('Next up: <strong>' + modLabel(M) + ' · ' + esc(M.title) + '</strong> (' + t.lessons.done + '/' + t.lessons.total + ' lessons done).' +
+        (t.lessons.done === 0 ? ' Already know it cold? You can test out — but only a perfect score counts.' : ''));
+      actions.push(link('#/module/' + M.id, 'Open ' + modLabel(M) + ' →', 'primary'));
+      if (t.lessons.done === 0) actions.push(link('#/quiz/module/' + M.id, 'Test out at 100%'));
       return { html: parts.map(function (x) { return '<p>' + x + '</p>'; }).join(''), actions: actions, mood: 'focus' };
     }
-    var target = mods.find(function (m) { return m.status === 'in-progress' && !m.locked; }) || mods.find(function (m) { return !m.complete && !m.locked && m.status !== 'awaiting-checkoffs'; });
+    var target = mods.find(function (m) { return m.status === 'in-progress' && !m.locked; }) || mods.find(function (m) { return !m.complete && !m.locked; });
     if (target) {
       var TM = CUR.modulesById[target.id];
       parts.push('Next up: <strong>' + modLabel(TM) + ' · ' + esc(TM.title) + '</strong> — ' + target.lessons.done + '/' + target.lessons.total + ' lessons, ' +
@@ -239,16 +229,7 @@
       actions.push(link('#/module/' + TM.id, 'Open ' + modLabel(TM) + ' →', 'primary'));
       if (target.lessons.studied === 0 && !target.written.passed) actions.push(link('#/quiz/module/' + TM.id, 'Test out'));
     }
-    if (awaiting.length) {
-      var a = awaiting[0], pa = pendingItems(a);
-      parts.push('⏳ <strong>' + modLabel(a) + '</strong> is waiting on ' + pa.length + ' check-off' + (pa.length === 1 ? '' : 's') + ': ' + itemList(pa) + '. Grab your instructor when you’re ready.' +
-        (awaiting.length > 1 ? ' (' + (awaiting.length - 1) + ' more module' + (awaiting.length > 2 ? 's' : '') + ' also waiting.)' : ''));
-      if (!target) actions.push(link('#/module/' + a.id, 'See ' + modLabel(a) + ' check-offs', 'primary'));
-    }
-    failed.filter(function (m) { return awaiting.indexOf(m) < 0; }).slice(0, 1).forEach(function (m) {
-      parts.push('🔁 ' + modLabel(m) + ' has a check-off to redo: ' + itemList(pendingItems(m).filter(function (i) { return i.status === 'fail'; })) + '.');
-    });
-    if (!target && !awaiting.length) {
+    if (!target) {
       var locked = mods.filter(function (m) { return m.locked; });
       if (locked.length) parts.push('🔒 ' + locked.map(modLabel).join(', ') + ' ' + (locked.length === 1 ? 'is' : 'are') + ' locked. ' + esc(CUR.level0.rule));
       else { parts.push('🏆 All 20 core modules are complete — that’s the whole ' + CUR.coreHours + '-hour program! Fancy an optional advanced module?'); actions.push(link('#/advanced', 'Advanced track →', 'primary')); }
@@ -266,13 +247,11 @@
       actions.push(link('#/module/m1', 'Go to Level 0 →', 'primary'));
       return { html: parts.join(''), actions: actions, mood: 'focus' };
     }
-    var co = ms.checkoffs, need = [];
+    var need = [];
     need.push((ms.written.passed ? '✅' : '⬜') + ' Written test ≥ <strong>' + M.passPercent + '%</strong>' + (ms.written.bestPercent != null && !ms.written.passed ? ' (best so far ' + Math.round(ms.written.bestPercent) + '%)' : ''));
-    if (co.required) need.push((co.passed >= co.required ? '✅' : '⬜') + ' ' + co.passed + '/' + co.required + ' practical check-offs signed by your instructor');
     if (M.track !== 'advanced') need.push('⏱️ ' + (Math.round(ms.loggedHours * 10) / 10) + ' of ' + M.hours + ' planned hours logged');
     parts.push('<p class="guide-sub">To complete ' + modLabel(M) + ':</p><ul class="guide-list">' + need.map(function (n) { return '<li>' + n + '</li>'; }).join('') + '</ul>');
     if (ms.complete) parts.push('<p>🎉 Done and dusted. Nice work!</p>');
-    else if (ms.status === 'awaiting-checkoffs') parts.push('<p>Written part is done — ask your instructor to sign: ' + itemList(pendingItems(ms)) + '.</p>');
     else if (M.safety) parts.push('<p>🛡️ Level 0 module: <strong>100%</strong> needed, test-out too. Read every option slowly.</p>');
     else if (ms.lessons.studied === 0 && !ms.written.passed) parts.push('<p>⚡ Know it already? The module test counts as a <strong>test-out at ' + M.testOutPercent + '%</strong>.</p>');
     if (L.tips[0]) parts.push('<p>💡 <strong>Tip:</strong> ' + esc(L.tips[0]) + '</p>');
@@ -330,7 +309,7 @@
       case 'defects': return { html: '<p>🔍 Detective mode! Find at least ' + window.EA_DEFECTS.PASS_PERCENT + '% of the seeded defects with no more than ' + window.EA_DEFECTS.MAX_FALSE_CALLS + ' false call. Use the condition guide — and inspect in the same order every time.</p>', mood: 'focus' };
       case 'tools': return { html: '<p>Calculators for quick checks. Pro move: work it out on paper first, then use these to confirm.</p>', mood: 'happy' };
       case 'advanced': return { html: '<p>🚀 The advanced track is optional and sits outside the ' + CUR.coreHours + ' core hours — pick what fits your job.</p>', mood: 'happy' };
-      case 'admin': return { html: '<p>Team view. Open a learner to sign check-offs (date, result, note) or log hours for them; the weekly report lives under <strong>Weekly report</strong>.</p>', mood: 'happy' };
+      case 'admin': return { html: '<p>Team view. Open a learner to see their modules and written tests, log hours for them or reset their password; the weekly report lives under <strong>Weekly report</strong>.</p>', mood: 'happy' };
       case 'account': return { html: '<p>Your account settings. You can replay my tour from the ⋯ menu any time.</p>', actions: ['<button class="guide-btn" data-ga="tour">🎬 Replay tour</button>'], mood: 'happy' };
       default: return null;
     }
@@ -389,8 +368,8 @@
     var c = isCompact();
     return [
       { sel: null, title: 'Hi, I’m ' + NAME + '! ⚡', body: 'I’m ' + GUIDE_CONFIG.tagline + '. I’ll point out what to do next, explain each module and cheer you on. Quick 30-second tour?' },
-      { sel: c ? '#navToggle' : '#mainnav a[data-nav="program"]', title: 'The program map', body: 'All 4 phases and 20 modules live under <strong>Program</strong>' + (c ? ' (open the ☰ menu)' : '') + '. Each module has lessons, a written test and practical check-offs.' },
-      { sel: '.safety-card', title: 'Level 0: safety first', body: 'Modules 1 and 2 need 100% and their check-offs. Until they’re done, the hands-on modules 15–20 stay locked.' },
+      { sel: c ? '#navToggle' : '#mainnav a[data-nav="program"]', title: 'The program map', body: 'All 4 phases and 20 modules live under <strong>Program</strong>' + (c ? ' (open the ☰ menu)' : '') + '. Each module has lessons and a written test; passing the test completes it.' },
+      { sel: '.safety-card', title: 'Level 0: safety first', body: 'Modules 1 and 2 need 100% on their written tests. Until they’re done, the hands-on modules 15–20 stay locked.' },
       { sel: '.hero .btn', title: 'Continue where you left off', body: 'This button always takes you to your current module. Know the material already? Look for <strong>Test out</strong>.' },
       { sel: c ? '#navToggle' : '#mainnav a[data-nav="hours"]', title: 'Log your hours', body: 'Record bench and study time per module under <strong>Hours</strong>.' },
       { sel: c ? '#navToggle' : '#mainnav a[data-nav="simulator"]', title: 'Play in the simulator', body: 'Build circuits, probe them and watch the scope. I’ll give you a challenge for your current module.' },

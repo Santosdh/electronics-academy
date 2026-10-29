@@ -34,6 +34,6 @@ if (!opt('out') && !opt('json')) process.stdout.write(JSON.stringify(report, nul
 else {
   const t = report.team;
   console.log(`Team: ${t.memberCount} learners, ${t.activeThisWeek} active this week, avg ${t.averageCreditedHours} of ${report.program.coreHours} h credited, ` +
-    `${t.hoursLoggedThisWeek} h logged, ${t.checkoffsThisWeek.signed} check-offs signed and ${t.writtenTestsThisWeek} written tests this week; ` +
+    `${t.hoursLoggedThisWeek} h logged, ${t.modulesCompletedThisWeek} modules completed and ${t.writtenTestsThisWeek} written tests this week; ` +
     `safety: ${t.safety.cleared} cleared / ${t.safety.partial} partial / ${t.safety.notCleared} not cleared.`);
 }

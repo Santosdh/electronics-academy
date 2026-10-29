@@ -451,7 +451,7 @@ body.signed-out { background: radial-gradient(1200px 600px at 50% -10%, #e0e7ff,
   #simTools .tool { min-height: 0; }
 }
 
-/* ===================== v2: program / modules / check-offs / hours ===================== */
+/* ===================== v2: program / modules / hours (.co-* / .sign-card rules are unused legacy) ===================== */
 :root { --await: #0e7490; --await-soft: #cffafe; }
 .badge.st-done { background: var(--ok-soft); color: #065f46; }
 .badge.st-await { background: var(--await-soft); color: #155e75; }

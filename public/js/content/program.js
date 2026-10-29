@@ -75,12 +75,7 @@
     "Fuses & breakers as protection",
     "Lab rules, housekeeping, FOD awareness"
    ],
-   "labs": [
-    "Bench safety walk-down & hazard hunt",
-    "Capacitor safe-discharge demonstration",
-    "LOTO practical on a training panel"
-   ],
-   "assessment": "Written safety quiz (100% required, may retake); LOTO practical sign-off",
+   "assessment": "Written test (100% required, may retake)",
    "notes": "Safety tops CETa, Nida, Navy and USAF syllabi. Add site EHS rules.",
    "lessonIds": [
     "m1-shock",
@@ -95,36 +90,6 @@
    "workmanship": false,
    "gated": false,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m1-lab1",
-     "kind": "lab",
-     "title": "Bench safety walk-down & hazard hunt",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m1-lab2",
-     "kind": "lab",
-     "title": "Capacitor safe-discharge demonstration",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m1-lab3",
-     "kind": "lab",
-     "title": "LOTO practical on a training panel",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m1-pa1",
-     "kind": "assessment",
-     "title": "LOTO practical sign-off",
-     "standard": "Pass/fail against the stated assessment standard: Written safety quiz (100% required, may retake); LOTO practical sign-off",
-     "required": true
-    }
-   ],
    "sims": []
   },
   {
@@ -144,11 +109,7 @@
     "EPA (ESD Protected Area) rules",
     "Wrist-strap/footwear testers, packaging, moisture-sensitive device awareness"
    ],
-   "labs": [
-    "Wrist strap & mat test",
-    "Field-meter demo of charge generation by common materials"
-   ],
-   "assessment": "Quiz (80%); daily wrist-strap check log",
+   "assessment": "Written test (100% required, may retake)",
    "notes": "Aerospace: ANSI/ESD S20.20 site control plan (required by NASA-STD-8739.6).",
    "lessonIds": [
     "m2-esd-basics",
@@ -162,29 +123,6 @@
    "workmanship": false,
    "gated": false,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m2-lab1",
-     "kind": "lab",
-     "title": "Wrist strap & mat test",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m2-lab2",
-     "kind": "lab",
-     "title": "Field-meter demo of charge generation by common materials",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m2-pa1",
-     "kind": "assessment",
-     "title": "Daily wrist-strap check log maintained",
-     "standard": "Pass/fail against the stated assessment standard: Quiz (80%); daily wrist-strap check log",
-     "required": true
-    }
-   ],
    "sims": []
   },
   {
@@ -206,10 +144,6 @@
     "Intro to sine/cosine, phase angle",
     "Number systems (binary, hex)"
    ],
-   "labs": [
-    "Calculator drills; converting meter readings between units",
-    "Tolerance worksheet using real resistor values"
-   ],
    "assessment": "Written test (80%)",
    "notes": "Kept short and applied; delivered alongside Modules 4-5.",
    "lessonIds": [
@@ -226,22 +160,6 @@
    "workmanship": false,
    "gated": false,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m3-lab1",
-     "kind": "lab",
-     "title": "Calculator drills; converting meter readings between units",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m3-lab2",
-     "kind": "lab",
-     "title": "Tolerance worksheet using real resistor values",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    }
-   ],
    "sims": []
   },
   {
@@ -262,12 +180,7 @@
     "Bench supply CV/CC modes, current limiting",
     "Measurement uncertainty and recording data"
    ],
-   "labs": [
-    "Measure a resistor kit and compare with color code",
-    "Series current measurement on a breadboard",
-    "Current-limit a supply to protect a load"
-   ],
-   "assessment": "Practical check-off: 10 measurements within tolerance, no unsafe meter use",
+   "assessment": "Written test (80%)",
    "notes": "Hands-on emphasis for new techs; Nida, CIE, USAF and Army all teach the meter early.",
    "lessonIds": [
     "m4-dmm",
@@ -281,36 +194,6 @@
    "workmanship": false,
    "gated": false,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m4-lab1",
-     "kind": "lab",
-     "title": "Measure a resistor kit and compare with color code",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m4-lab2",
-     "kind": "lab",
-     "title": "Series current measurement on a breadboard",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m4-lab3",
-     "kind": "lab",
-     "title": "Current-limit a supply to protect a load",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m4-pa1",
-     "kind": "assessment",
-     "title": "Practical check-off: 10 measurements within tolerance, no unsafe meter use",
-     "standard": "Pass/fail against the stated assessment standard: Practical check-off: 10 measurements within tolerance, no unsafe meter use",
-     "required": true
-    }
-   ],
    "sims": []
   },
   {
@@ -331,11 +214,7 @@
     "Series/parallel/combination circuits",
     "Opens, shorts and their measured symptoms"
    ],
-   "labs": [
-    "Build & measure series, parallel and combination circuits; compare predicted vs. measured",
-    "Overpower a resistor (controlled) to show derating"
-   ],
-   "assessment": "Written test (80%) + lab notebook review",
+   "assessment": "Written test (80%)",
    "notes": "Found in all 10 theory-bearing programs.",
    "lessonIds": [
     "l1-charge-current",
@@ -353,29 +232,6 @@
    "workmanship": false,
    "gated": false,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m5-lab1",
-     "kind": "lab",
-     "title": "Build & measure series, parallel and combination circuits; compare predicted vs. measured",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m5-lab2",
-     "kind": "lab",
-     "title": "Overpower a resistor (controlled) to show derating",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m5-pa1",
-     "kind": "assessment",
-     "title": "Lab notebook review",
-     "standard": "Pass/fail against the stated assessment standard: Written test (80%) + lab notebook review",
-     "required": true
-    }
-   ],
    "sims": [
     "series",
     "parallel",
@@ -400,11 +256,7 @@
     "Loading effects; intro to Thevenin/Norton",
     "Batteries & internal resistance"
    ],
-   "labs": [
-    "Divider design & loading experiment",
-    "Bridge balancing lab"
-   ],
-   "assessment": "Written test (80%); practical: predict and verify 3 node voltages",
+   "assessment": "Written test (80%)",
    "notes": "MIT 6.002 / AAS depth trimmed to technician level.",
    "lessonIds": [
     "l3-kirchhoff",
@@ -419,29 +271,6 @@
    "workmanship": false,
    "gated": false,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m6-lab1",
-     "kind": "lab",
-     "title": "Divider design & loading experiment",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m6-lab2",
-     "kind": "lab",
-     "title": "Bridge balancing lab",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m6-pa1",
-     "kind": "assessment",
-     "title": "Predict and verify 3 node voltages",
-     "standard": "Pass/fail against the stated assessment standard: Written test (80%); practical: predict and verify 3 node voltages",
-     "required": true
-    }
-   ],
    "sims": [
     "divider",
     "bridge"
@@ -465,11 +294,7 @@
     "Part numbers, reference designators, data-sheet ratings",
     "Counterfeit/suspect part awareness"
    ],
-   "labs": [
-    "Component ID kit (timed)",
-    "Relay coil & contact test with DMM"
-   ],
-   "assessment": "Practical ID quiz (90%) + data-sheet scavenger hunt",
+   "assessment": "Written test (80%)",
    "notes": "Feeds directly into soldering and assembly work.",
    "lessonIds": [
     "l2-resistors",
@@ -484,36 +309,6 @@
    "workmanship": false,
    "gated": false,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m7-lab1",
-     "kind": "lab",
-     "title": "Component ID kit (timed)",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m7-lab2",
-     "kind": "lab",
-     "title": "Relay coil & contact test with DMM",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m7-pa1",
-     "kind": "assessment",
-     "title": "Practical ID quiz (90%)",
-     "standard": "Pass/fail against the stated assessment standard: Practical ID quiz (90%) + data-sheet scavenger hunt",
-     "required": true
-    },
-    {
-     "id": "m7-pa2",
-     "kind": "assessment",
-     "title": "Data-sheet scavenger hunt",
-     "standard": "Pass/fail against the stated assessment standard: Practical ID quiz (90%) + data-sheet scavenger hunt",
-     "required": true
-    }
-   ],
    "sims": []
   },
   {
@@ -534,12 +329,7 @@
     "Function generator settings, output impedance",
     "Frequency, phase, duty cycle"
    ],
-   "labs": [
-    "Probe compensation",
-    "Measure generator signals and compare with DMM AC readings",
-    "Duty-cycle / PWM measurement"
-   ],
-   "assessment": "Practical scope check-off (set up and measure 5 signals unaided) + quiz (80%)",
+   "assessment": "Written test (80%)",
    "notes": "Scope & generator listed by USAF EPI, Army 94F, CIE, Nida, CETa.",
    "lessonIds": [
     "l3-ac",
@@ -554,36 +344,6 @@
    "workmanship": false,
    "gated": false,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m8-lab1",
-     "kind": "lab",
-     "title": "Probe compensation",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m8-lab2",
-     "kind": "lab",
-     "title": "Measure generator signals and compare with DMM AC readings",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m8-lab3",
-     "kind": "lab",
-     "title": "Duty-cycle / PWM measurement",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m8-pa1",
-     "kind": "assessment",
-     "title": "Practical scope check-off (set up and measure 5 signals unaided)",
-     "standard": "Pass/fail against the stated assessment standard: Practical scope check-off (set up and measure 5 signals unaided) + quiz (80%)",
-     "required": true
-    }
-   ],
    "sims": [
     "ac-sine",
     "pwm",
@@ -608,12 +368,7 @@
     "Low/high-pass filters, resonance (overview)",
     "Transformers, isolation, safety"
    ],
-   "labs": [
-    "RC charge/discharge on scope",
-    "Simple filter frequency sweep",
-    "Transformer ratio measurement (low-voltage)"
-   ],
-   "assessment": "Written test (75%) + lab report",
+   "assessment": "Written test (75%)",
    "notes": "",
    "lessonIds": [
     "l2-capacitors",
@@ -629,36 +384,6 @@
    "workmanship": false,
    "gated": false,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m9-lab1",
-     "kind": "lab",
-     "title": "RC charge/discharge on scope",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m9-lab2",
-     "kind": "lab",
-     "title": "Simple filter frequency sweep",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m9-lab3",
-     "kind": "lab",
-     "title": "Transformer ratio measurement (low-voltage)",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m9-pa1",
-     "kind": "assessment",
-     "title": "Lab report",
-     "standard": "Pass/fail against the stated assessment standard: Written test (75%) + lab report",
-     "required": true
-    }
-   ],
    "sims": [
     "rc-charge",
     "rc-phase",
@@ -683,12 +408,7 @@
     "BJT & MOSFET basics, switching a relay/LED, flyback diodes",
     "ESD-sensitive device handling refresher"
    ],
-   "labs": [
-    "Diode/transistor good/bad testing",
-    "Build a bridge rectifier & view ripple on scope",
-    "Transistor relay driver"
-   ],
-   "assessment": "Written test (80%) + practical component test",
+   "assessment": "Written test (80%)",
    "notes": "",
    "lessonIds": [
     "l2-diodes-leds",
@@ -703,36 +423,6 @@
    "workmanship": false,
    "gated": false,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m10-lab1",
-     "kind": "lab",
-     "title": "Diode/transistor good/bad testing",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m10-lab2",
-     "kind": "lab",
-     "title": "Build a bridge rectifier & view ripple on scope",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m10-lab3",
-     "kind": "lab",
-     "title": "Transistor relay driver",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m10-pa1",
-     "kind": "assessment",
-     "title": "Practical component test",
-     "standard": "Pass/fail against the stated assessment standard: Written test (80%) + practical component test",
-     "required": true
-    }
-   ],
    "sims": [
     "led",
     "two-leds",
@@ -758,10 +448,7 @@
     "Intro to switching regulators (concept only)",
     "Supply faults and symptoms"
    ],
-   "labs": [
-    "Build a regulated 5 V supply; measure ripple and regulation under load"
-   ],
-   "assessment": "Practical: supply meets spec; short quiz",
+   "assessment": "Written test (80%)",
    "notes": "",
    "lessonIds": [
     "l5-power-supplies",
@@ -775,22 +462,6 @@
    "workmanship": false,
    "gated": false,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m11-lab1",
-     "kind": "lab",
-     "title": "Build a regulated 5 V supply; measure ripple and regulation under load",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m11-pa1",
-     "kind": "assessment",
-     "title": "Practical: supply meets spec",
-     "standard": "Pass/fail against the stated assessment standard: Practical: supply meets spec; short quiz",
-     "required": true
-    }
-   ],
    "sims": [
     "half-wave",
     "full-wave"
@@ -811,10 +482,7 @@
     "Gain, decibels (intro)",
     "Op-amp rules, inverting/non-inverting, comparator, buffer"
    ],
-   "labs": [
-    "Op-amp gain lab with scope"
-   ],
-   "assessment": "Quiz (75%) + lab verification",
+   "assessment": "Written test (75%)",
    "notes": "Kept brief for entry level; deeper analog is optional.",
    "lessonIds": [
     "l5-opamps",
@@ -828,22 +496,6 @@
    "workmanship": false,
    "gated": false,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m12-lab1",
-     "kind": "lab",
-     "title": "Op-amp gain lab with scope",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m12-pa1",
-     "kind": "assessment",
-     "title": "Lab verification",
-     "standard": "Pass/fail against the stated assessment standard: Quiz (75%) + lab verification",
-     "required": true
-    }
-   ],
    "sims": []
   },
   {
@@ -864,12 +516,7 @@
     "Clocks, pull-ups, A/D and D/A (overview)",
     "Digital troubleshooting (stuck high/low)"
    ],
-   "labs": [
-    "Gate truth-table lab",
-    "Build a 4-bit counter with display",
-    "Find an inserted digital fault"
-   ],
-   "assessment": "Written test (80%) + practical",
+   "assessment": "Written test (80%)",
    "notes": "In all 10 theory-bearing programs.",
    "lessonIds": [
     "l4-logic-gates",
@@ -884,36 +531,6 @@
    "workmanship": false,
    "gated": false,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m13-lab1",
-     "kind": "lab",
-     "title": "Gate truth-table lab",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m13-lab2",
-     "kind": "lab",
-     "title": "Build a 4-bit counter with display",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m13-lab3",
-     "kind": "lab",
-     "title": "Find an inserted digital fault",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m13-pa1",
-     "kind": "assessment",
-     "title": "Digital practical assessment",
-     "standard": "Pass/fail against the stated assessment standard: Written test (80%) + practical",
-     "required": true
-    }
-   ],
    "sims": []
   },
   {
@@ -934,12 +551,7 @@
     "Work instructions, travelers, nonconformance reporting",
     "Engineering change/revision awareness"
    ],
-   "labs": [
-    "Trace a real board against its schematic",
-    "Build a small circuit from a schematic only",
-    "Mark up a wiring diagram for a harness"
-   ],
-   "assessment": "Practical: locate 10 items on board from schematic; quiz",
+   "assessment": "Written test (80%)",
    "notes": "Mirrors USAF 'technical data' and Army technical-manual tasks.",
    "lessonIds": [
     "m14-schematics",
@@ -953,36 +565,6 @@
    "workmanship": false,
    "gated": false,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m14-lab1",
-     "kind": "lab",
-     "title": "Trace a real board against its schematic",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m14-lab2",
-     "kind": "lab",
-     "title": "Build a small circuit from a schematic only",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m14-lab3",
-     "kind": "lab",
-     "title": "Mark up a wiring diagram for a harness",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m14-pa1",
-     "kind": "assessment",
-     "title": "Practical: locate 10 items on board from schematic",
-     "standard": "Pass/fail against the stated assessment standard: Practical: locate 10 items on board from schematic; quiz",
-     "required": true
-    }
-   ],
    "sims": []
   },
   {
@@ -1003,12 +585,7 @@
     "Lead forming, hole fill, wire stripping & tinning, turret/cup/hook terminals",
     "Desoldering & rework basics"
    ],
-   "labs": [
-    "Through-hole practice kit",
-    "Wire-to-terminal (turret, cup) practice",
-    "Desolder/replace component"
-   ],
-   "assessment": "Workmanship inspection of practice board to IPC criteria (target Class 3 with defect log) + written quiz",
+   "assessment": "Written test (80%)",
    "notes": "Aerospace: IPC J-STD-001 (Space Addendum for flight hardware); NASA-STD-8739.3 is superseded by J-STD-001xS.",
    "lessonIds": [
     "m15-solder-science",
@@ -1023,36 +600,6 @@
    "workmanship": true,
    "gated": true,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m15-lab1",
-     "kind": "lab",
-     "title": "Through-hole practice kit",
-     "standard": "Pass/fail against the instructor checklist; workmanship judged against the program’s IPC criteria with a defect log",
-     "required": true
-    },
-    {
-     "id": "m15-lab2",
-     "kind": "lab",
-     "title": "Wire-to-terminal (turret, cup) practice",
-     "standard": "Pass/fail against the instructor checklist; workmanship judged against the program’s IPC criteria with a defect log",
-     "required": true
-    },
-    {
-     "id": "m15-lab3",
-     "kind": "lab",
-     "title": "Desolder/replace component",
-     "standard": "Pass/fail against the instructor checklist; workmanship judged against the program’s IPC criteria with a defect log",
-     "required": true
-    },
-    {
-     "id": "m15-pa1",
-     "kind": "assessment",
-     "title": "Workmanship inspection of practice board to IPC criteria (target Class 3, with defect log)",
-     "standard": "Pass/fail against the stated assessment standard: Workmanship inspection of practice board to IPC criteria (target Class 3 with defect log) + written quiz",
-     "required": true
-    }
-   ],
    "sims": []
   },
   {
@@ -1073,11 +620,7 @@
     "Magnification and inspection lighting",
     "Moisture-sensitive device handling"
    ],
-   "labs": [
-    "SMT practice board (0805 -> SOIC -> fine pitch)",
-    "Remove/replace an SOIC with hot air"
-   ],
-   "assessment": "Workmanship inspection to IPC-A-610 criteria + practical demonstration",
+   "assessment": "Written test (80%)",
    "notes": "J-STD-001 Module 5; IPC-A-610.",
    "lessonIds": [
     "m16-smt",
@@ -1091,36 +634,6 @@
    "workmanship": true,
    "gated": true,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m16-lab1",
-     "kind": "lab",
-     "title": "SMT practice board (0805 -> SOIC -> fine pitch)",
-     "standard": "Pass/fail against the instructor checklist; workmanship judged against the program’s IPC criteria with a defect log",
-     "required": true
-    },
-    {
-     "id": "m16-lab2",
-     "kind": "lab",
-     "title": "Remove/replace an SOIC with hot air",
-     "standard": "Pass/fail against the instructor checklist; workmanship judged against the program’s IPC criteria with a defect log",
-     "required": true
-    },
-    {
-     "id": "m16-pa1",
-     "kind": "assessment",
-     "title": "Workmanship inspection to IPC-A-610 criteria",
-     "standard": "Pass/fail against the stated assessment standard: Workmanship inspection to IPC-A-610 criteria + practical demonstration",
-     "required": true
-    },
-    {
-     "id": "m16-pa2",
-     "kind": "assessment",
-     "title": "Practical demonstration",
-     "standard": "Pass/fail against the stated assessment standard: Workmanship inspection to IPC-A-610 criteria + practical demonstration",
-     "required": true
-    }
-   ],
    "sims": []
   },
   {
@@ -1141,10 +654,7 @@
     "Inspection documentation and traceability",
     "NASA workmanship framework (NASA-STD-8739.6)"
    ],
-   "labs": [
-    "Inspect a deliberately-defected board and complete a defect log"
-   ],
-   "assessment": "Inspection exercise: find >=90% of seeded defects",
+   "assessment": "Written test (80%)",
    "notes": "Prepares techs for formal IPC CIS certification (optional module).",
    "lessonIds": [
     "m17-standards",
@@ -1158,22 +668,6 @@
    "workmanship": true,
    "gated": true,
    "defectExercise": true,
-   "checkoffs": [
-    {
-     "id": "m17-lab1",
-     "kind": "lab",
-     "title": "Inspect a deliberately-defected board and complete a defect log",
-     "standard": "Pass/fail against the instructor checklist; workmanship judged against the program’s IPC criteria with a defect log",
-     "required": true
-    },
-    {
-     "id": "m17-pa1",
-     "kind": "assessment",
-     "title": "Inspection exercise: find ≥90% of seeded defects (instructor-seeded board)",
-     "standard": "Pass/fail against the stated assessment standard: Inspection exercise: find >=90% of seeded defects",
-     "required": true
-    }
-   ],
    "sims": []
   },
   {
@@ -1195,12 +689,7 @@
     "Splices, heat-shrink, shielding/coax (intro), marking & securing",
     "Continuity and insulation-resistance (hipot awareness) testing"
    ],
-   "labs": [
-    "Crimp & pull-test exercise",
-    "Build a multi-branch harness from a drawing",
-    "Continuity/pin-to-pin test"
-   ],
-   "assessment": "Harness inspection against A-620 criteria + written quiz",
+   "assessment": "Written test (80%)",
    "notes": "Aerospace: IPC/WHMA-A-620 (Space Addendum) and NASA-STD-8739.4.",
    "lessonIds": [
     "m18-wire",
@@ -1215,36 +704,6 @@
    "workmanship": true,
    "gated": true,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m18-lab1",
-     "kind": "lab",
-     "title": "Crimp & pull-test exercise",
-     "standard": "Pass/fail against the instructor checklist; workmanship judged against the program’s IPC criteria with a defect log",
-     "required": true
-    },
-    {
-     "id": "m18-lab2",
-     "kind": "lab",
-     "title": "Build a multi-branch harness from a drawing",
-     "standard": "Pass/fail against the instructor checklist; workmanship judged against the program’s IPC criteria with a defect log",
-     "required": true
-    },
-    {
-     "id": "m18-lab3",
-     "kind": "lab",
-     "title": "Continuity/pin-to-pin test",
-     "standard": "Pass/fail against the instructor checklist; workmanship judged against the program’s IPC criteria with a defect log",
-     "required": true
-    },
-    {
-     "id": "m18-pa1",
-     "kind": "assessment",
-     "title": "Harness inspection against IPC/WHMA-A-620 criteria",
-     "standard": "Pass/fail against the stated assessment standard: Harness inspection against A-620 criteria + written quiz",
-     "required": true
-    }
-   ],
    "sims": []
   },
   {
@@ -1265,11 +724,7 @@
     "Using schematics and expected values",
     "Repair verification and documentation"
    ],
-   "labs": [
-    "Fault-insertion boards (analog, power, digital)",
-    "Timed troubleshooting scenarios"
-   ],
-   "assessment": "Practical: isolate 3 of 4 unknown faults within time limit; troubleshooting report",
+   "assessment": "Written test (80%)",
    "notes": "Central to Navy ETN, USAF, Army 94F, CIE and Nida.",
    "lessonIds": [
     "m19-method",
@@ -1283,36 +738,6 @@
    "workmanship": false,
    "gated": true,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m19-lab1",
-     "kind": "lab",
-     "title": "Fault-insertion boards (analog, power, digital)",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m19-lab2",
-     "kind": "lab",
-     "title": "Timed troubleshooting scenarios",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m19-pa1",
-     "kind": "assessment",
-     "title": "Practical: isolate 3 of 4 unknown faults within the time limit",
-     "standard": "Pass/fail against the stated assessment standard: Practical: isolate 3 of 4 unknown faults within time limit; troubleshooting report",
-     "required": true
-    },
-    {
-     "id": "m19-pa2",
-     "kind": "assessment",
-     "title": "Troubleshooting report",
-     "standard": "Pass/fail against the stated assessment standard: Practical: isolate 3 of 4 unknown faults within time limit; troubleshooting report",
-     "required": true
-    }
-   ],
    "sims": [
     "series",
     "divider"
@@ -1333,10 +758,7 @@
    "topics": [
     "Integrates all prior modules"
    ],
-   "labs": [
-    "Kit build (e.g., regulated supply + digital counter + interface harness) to drawings and workmanship standard"
-   ],
-   "assessment": "Capstone rubric: workmanship, functional test, documentation, troubleshooting debrief",
+   "assessment": "Written test (80%)",
    "notes": "",
    "lessonIds": [
     "m20-capstone"
@@ -1349,43 +771,6 @@
    "workmanship": false,
    "gated": true,
    "defectExercise": false,
-   "checkoffs": [
-    {
-     "id": "m20-lab1",
-     "kind": "lab",
-     "title": "Kit build (e.g., regulated supply + digital counter + interface harness) to drawings and workmanship standard",
-     "standard": "Pass/fail against the instructor checklist",
-     "required": true
-    },
-    {
-     "id": "m20-pa1",
-     "kind": "assessment",
-     "title": "Capstone rubric: workmanship",
-     "standard": "Pass/fail against the stated assessment standard: Capstone rubric: workmanship, functional test, documentation, troubleshooting debrief",
-     "required": true
-    },
-    {
-     "id": "m20-pa2",
-     "kind": "assessment",
-     "title": "Capstone rubric: functional test",
-     "standard": "Pass/fail against the stated assessment standard: Capstone rubric: workmanship, functional test, documentation, troubleshooting debrief",
-     "required": true
-    },
-    {
-     "id": "m20-pa3",
-     "kind": "assessment",
-     "title": "Capstone rubric: documentation",
-     "standard": "Pass/fail against the stated assessment standard: Capstone rubric: workmanship, functional test, documentation, troubleshooting debrief",
-     "required": true
-    },
-    {
-     "id": "m20-pa4",
-     "kind": "assessment",
-     "title": "Capstone rubric: troubleshooting debrief",
-     "standard": "Pass/fail against the stated assessment standard: Capstone rubric: workmanship, functional test, documentation, troubleshooting debrief",
-     "required": true
-    }
-   ],
    "sims": []
   }
  ],
@@ -1404,7 +789,6 @@
    "passPercent": 80,
    "testOutPercent": 80,
    "passSource": "app default",
-   "checkoffs": [],
    "sims": []
   },
   {
@@ -1419,7 +803,6 @@
    "passPercent": 80,
    "testOutPercent": 80,
    "passSource": "app default",
-   "checkoffs": [],
    "sims": []
   },
   {
@@ -1434,7 +817,6 @@
    "passPercent": 80,
    "testOutPercent": 80,
    "passSource": "app default",
-   "checkoffs": [],
    "sims": []
   },
   {
@@ -1451,7 +833,6 @@
    "passPercent": 80,
    "testOutPercent": 80,
    "passSource": "app default",
-   "checkoffs": [],
    "sims": []
   },
   {
@@ -1466,7 +847,6 @@
    "passPercent": 80,
    "testOutPercent": 80,
    "passSource": "app default",
-   "checkoffs": [],
    "sims": []
   },
   {
@@ -1481,7 +861,6 @@
    "passPercent": 80,
    "testOutPercent": 80,
    "passSource": "app default",
-   "checkoffs": [],
    "sims": []
   },
   {
@@ -1499,7 +878,6 @@
    "passPercent": 80,
    "testOutPercent": 80,
    "passSource": "app default",
-   "checkoffs": [],
    "sims": []
   },
   {
@@ -1514,7 +892,6 @@
    "passPercent": 80,
    "testOutPercent": 80,
    "passSource": "app default",
-   "checkoffs": [],
    "sims": []
   },
   {
@@ -1533,7 +910,6 @@
    "passPercent": 80,
    "testOutPercent": 80,
    "passSource": "app default",
-   "checkoffs": [],
    "sims": []
   }
  ],

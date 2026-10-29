@@ -13,13 +13,12 @@ check(C.modules.length === 20, 'expected 20 core modules');
 check(C.coreHours === 304, 'core hours should be 304');
 check(C.modules.reduce((a, m) => a + m.hours, 0) === 304, 'module hours should sum to 304');
 check(C.phases.reduce((a, p) => a + p.modules.length, 0) === 20, 'phases must cover all 20 modules');
-// Faithful to the source: titles, hours, labs and assessments match curriculum.json exactly.
+// Faithful to the source: titles and hours match curriculum.json exactly (labs/practical sign-offs are intentionally not carried over).
 src.modules.forEach((s, i) => {
   const m = C.modules[i];
   check(m.number === s.number && m.title === s.title && m.hours === s.hours, `module ${s.number} title/hours mismatch`);
-  check(JSON.stringify(m.labs) === JSON.stringify(s.labs), `module ${s.number} labs mismatch`);
-  check(m.assessment === s.assessment, `module ${s.number} assessment mismatch`);
-  check(m.checkoffs.filter((c) => c.kind === 'lab').length === s.labs.length, `module ${s.number} lab check-offs`);
+  check(m.labs === undefined && m.checkoffs === undefined, `module ${s.number} still carries labs/check-offs (removed: no admin sign-offs)`);
+  check(/^Written test/.test(m.assessment) && !/practical|instructor|sign/i.test(m.assessment), `module ${s.number} assessment should be written-test only`);
   check(m.lessons.length >= 1, `module ${s.number} has no lessons`);
   check(C.moduleQuestions(m.id).length >= 3, `module ${s.number} needs a written test`);
   check(m.passPercent >= 75 && m.passPercent <= 100, `module ${s.number} pass percent`);
@@ -57,7 +56,7 @@ const nL = C.allLessons().length, nQ = Object.keys(C.questionsById).length;
 console.log(`${C.phases.length} phases, ${C.modules.length} core modules (${C.coreHours} h), ${C.advanced.length} advanced, ${nL} lessons, ${nQ} questions`);
 C.phases.forEach((p) => {
   console.log(`  Phase ${p.number} ${p.title} (${p.hours} h)`);
-  p.modules.forEach((m) => console.log(`    M${m.number} ${m.title}: ${m.lessons.length} lessons, ${C.moduleQuestions(m.id).length} Qs, test ${C.moduleTestSize(m.id)} @ ${m.passPercent}%, ${m.checkoffs.length} check-offs`));
+  p.modules.forEach((m) => console.log(`    M${m.number} ${m.title}: ${m.lessons.length} lessons, ${C.moduleQuestions(m.id).length} Qs, test ${C.moduleTestSize(m.id)} @ ${m.passPercent}%`));
 });
 if (errors.length) { console.log('FAIL\n' + errors.join('\n')); process.exit(1); }
 console.log('content OK');

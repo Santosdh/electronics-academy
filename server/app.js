@@ -125,7 +125,7 @@ function createApp(db) {
   api.delete('/hours/:id', A.requireAuth, wrap((req, res) => {
     const h = db.prepare('SELECT * FROM hour_logs WHERE id=?').get(Number(req.params.id));
     if (!h || (h.user_id !== req.user.id && req.user.role !== 'admin')) return res.status(404).json({ error: 'Entry not found.' });
-    if (h.logger_role === 'admin' && req.user.role !== 'admin') return res.status(403).json({ error: 'Hours logged by an instructor can only be removed by an admin.' });
+    if (h.logger_role === 'admin' && req.user.role !== 'admin') return res.status(403).json({ error: 'Hours logged by an admin can only be removed by an admin.' });
     db.prepare('DELETE FROM hour_logs WHERE id=?').run(h.id);
     res.json({ ok: true, progress: P.getProgress(db, h.user_id) });
   }));
@@ -185,15 +185,10 @@ function createApp(db) {
     const inv = issueInvite(db, u.id);
     res.json({ resetPath: inv.path, expiresAt: inv.expires, pending: !u.password_hash });
   }));
-  // Practical / lab check-offs: signed by an admin (instructor). Latest sign-off per item counts.
-  api.post('/admin/users/:id/checkoffs', A.requireAdmin, wrap((req, res) => {
-    const u = db.prepare('SELECT * FROM users WHERE id=?').get(Number(req.params.id));
-    if (!u) return res.status(404).json({ error: 'User not found.' });
-    const b = req.body || {};
-    const id = P.signCheckoff(db, { userId: u.id, moduleId: String(b.moduleId || ''), itemId: String(b.itemId || ''), status: b.status,
-      performedOn: b.performedOn, note: b.note, signer: req.user });
-    res.status(201).json({ id, progress: P.getProgress(db, u.id) });
-  }));
+  // Practical check-offs (admin sign-offs) were removed from the program; modules complete on the written test.
+  // Old rows stay in the `checkoffs` table for history but nothing reads or writes them.
+  api.post('/admin/users/:id/checkoffs', A.requireAdmin, (req, res) =>
+    res.status(410).json({ error: 'Practical check-offs have been removed — a module is complete once its written test is passed.' }));
   api.post('/admin/users/:id/hours', A.requireAdmin, wrap((req, res) => {
     const u = db.prepare('SELECT * FROM users WHERE id=?').get(Number(req.params.id));
     if (!u) return res.status(404).json({ error: 'User not found.' });

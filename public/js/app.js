@@ -1,11 +1,11 @@
-/* Electronics Academy — single-page app: 4-phase / 20-module program, written tests, check-offs, hours, admin. */
+/* Electronics Academy — single-page app: 4-phase / 20-module program, written tests (self-checked), hours, admin. */
 (function () {
   'use strict';
   var CUR = window.CURRICULUM, U = window.Units, esc = U.esc;
   var app = document.getElementById('app');
   var S = { user: null, progress: null };
   var KIND_LABEL = { module: 'Written test', lesson: 'Lesson check', 'testout-lesson': 'Lesson test-out', 'defect-practice': 'Defect exercise' };
-  var STATUS = { complete: ['done', '✓ Complete'], 'awaiting-checkoffs': ['await', 'Awaiting check-offs'], 'in-progress': ['prog', 'In progress'],
+  var STATUS = { complete: ['done', '✓ Complete'], 'in-progress': ['prog', 'In progress'],
     'not-started': ['', 'Not started'], locked: ['locked', '🔒 Locked'] };
   var SAFETY = { cleared: ['pass', '✓ Level 0 cleared'], partial: ['await', 'Level 0 partial'], 'not-cleared': ['fail', 'Level 0 not cleared'] };
 
@@ -74,7 +74,6 @@
   }
   function statusBadge(st) { var b = STATUS[st] || ['', st]; return '<span class="badge st-' + (b[0] || 'none') + '">' + b[1] + '</span>'; }
   function safetyBadge(st) { var b = SAFETY[st] || ['', st]; return '<span class="badge ' + b[0] + '">' + b[1] + '</span>'; }
-  function coPill(st) { return '<span class="badge ' + (st === 'pass' ? 'pass' : st === 'fail' ? 'fail' : 'pending') + '">' + (st === 'pass' ? '✓ Pass' : st === 'fail' ? '✗ Fail' : 'Pending') + '</span>'; }
   function hrs(h) { return (Math.round((h || 0) * 10) / 10) + ' h'; }
   function today() { return new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
   function modLabel(m) { return (m.track === 'advanced' ? 'A' : 'M') + m.number; }
@@ -115,13 +114,13 @@
       '<section class="hero card">' +
       '<div class="hero-text"><p class="eyebrow">Welcome back</p><h1>Hi, ' + esc(S.user.name.split(' ')[0]) + ' 👋</h1>' +
       '<p>' + (!sum.safety.gateCleared ? 'Start with <strong>Level 0</strong>: Module 1 (Safety) and Module 2 (ESD). Both written tests need <strong>100%</strong>, and modules 15–20 unlock once both are complete.'
-        : cm ? 'You’re on <strong>Module ' + cm.number + ': ' + esc(cm.title) + '</strong>' + (sum.currentModule.status === 'awaiting-checkoffs' ? ' — written test passed, waiting for instructor check-offs.' : '.') : 'All 20 core modules are complete. Outstanding!') + '</p>' +
+        : cm ? 'You’re on <strong>Module ' + cm.number + ': ' + esc(cm.title) + '</strong>.' : 'All 20 core modules are complete. Outstanding!') + '</p>' +
       '<div class="btn-row">' + (cm ? '<a class="btn" href="#/module/' + cm.id + '">Open Module ' + cm.number + ' →</a>' : '') +
       (nl && (!cm || nl.moduleId !== cm.id) ? '<a class="btn ghost" href="#/lesson/' + nl.id + '">Next lesson: ' + esc(nl.title) + '</a>' : '') +
       '<a class="btn ghost" href="#/hours">Log hours</a></div></div>' +
       '<div class="hero-ring">' + ring(hp, 140) + '<div class="muted small"><strong>' + hrs(sum.hoursCredited) + '</strong> of ' + sum.coreHours + ' h credited</div></div></section>' +
       '<section class="stats">' +
-      stat('🧩', sum.modulesComplete + '/' + sum.modulesTotal, 'Modules complete') + stat('🖊️', sum.checkoffsPassed + '/' + sum.checkoffsRequired, 'Check-offs signed') +
+      stat('🧩', sum.modulesComplete + '/' + sum.modulesTotal, 'Modules complete') + stat('📖', sum.lessonsDone + '/' + sum.lessonsTotal, 'Lessons done') +
       stat('⏱️', hrs(sum.loggedHours), 'Hours logged') + stat('🎯', pct(sum.averageWrittenPercent), 'Avg written test') + '</section>' +
       safetyCard(sum, false) +
       '<h2 class="section-title">Phases</h2><section class="phase-grid">' +
@@ -136,18 +135,18 @@
       '<a href="#/simulator?preset=ac-sine">📈 AC scope demo</a><a href="#/simulator?preset=rc-phase">〰️ RC phase shift</a>' +
       '<a href="#/defects">🔍 Defect inspection (M17)</a><a href="#/advanced">🚀 Advanced track</a><a href="#/tools">⚖️ Calculators</a><a href="#/hours">⏱️ Hours log</a></div></section></div>';
   }
-  function miniCls(ms) { return ms.complete ? 'full' : ms.locked ? 'locked' : ms.status === 'awaiting-checkoffs' ? 'await' : ms.status === 'in-progress' ? 'part' : ''; }
+  function miniCls(ms) { return ms.complete ? 'full' : ms.locked ? 'locked' : ms.status === 'in-progress' ? 'part' : ''; }
   function stat(icon, val, label) { return '<div class="card stat"><span class="stat-icon">' + icon + '</span><div><div class="stat-val">' + val + '</div><div class="muted small">' + label + '</div></div></div>'; }
   function safetyCard(sum, compact) {
     var sf = sum.safety;
     var row = function (id, label) {
-      var ms = modSum(id), written = ms.written.passed, co = ms.checkoffs;
+      var ms = modSum(id), written = ms.written.passed;
       return '<li><a href="#/module/' + id + '"><strong>' + label + '</strong></a><span>' + (written ? '<span class="badge pass">Written 100% ✓</span>' : '<span class="badge fail">Written: ' + (ms.written.bestPercent != null ? pct(ms.written.bestPercent) + ' (need 100%)' : 'not taken') + '</span>') +
-        ' <span class="badge ' + (co.passed === co.required ? 'pass' : 'pending') + '">Check-offs ' + co.passed + '/' + co.required + '</span></span></li>';
+        '</span></li>';
     };
     return '<section class="card safety-card ' + sf.status + '"><div class="safety-head"><h2>🛡️ Level 0 — safety gate</h2>' + safetyBadge(sf.status) + '</div>' +
       '<ul class="safety-list">' + row('m1', 'M1 Orientation & Electrical Safety') + row('m2', 'M2 ESD Control') + '</ul>' +
-      (compact ? '' : '<p class="small muted">' + esc(CUR.level0.rule) + ' ' + (sf.powerAllowed ? 'Bench-power practicals (Module 4 onward) can be signed off.' : 'Until the Module 1 written test is passed, nothing is powered at the bench, so practicals from Module 4 on cannot be signed off.') + '</p>') + '</section>';
+      (compact ? '' : '<p class="small muted">' + esc(CUR.level0.rule) + '</p>') + '</section>';
   }
   function activityList(prog, n) {
     var items = [];
@@ -157,21 +156,17 @@
       items.push({ at: a.createdAt, html: '<span class="badge ' + (a.passed ? 'pass' : 'fail') + '">' + (a.kind === 'defect-practice' ? pct(a.percent) : a.score + '/' + a.total) + '</span> ' +
         (a.kind === 'module' && a.mode === 'test-out' ? 'Test-out' : KIND_LABEL[a.kind]) + ': ' + esc(a.lessonId ? CUR.lessonsById[a.lessonId].title : modLabel(m) + ' ' + m.title) });
     });
-    prog.checkoffs.forEach(function (c) {
-      var m = CUR.modulesById[c.moduleId], it = m.checkoffs.find(function (x) { return x.id === c.itemId; });
-      items.push({ at: c.signedAt, html: coPill(c.status) + ' Check-off: ' + esc(it ? it.title : c.itemId) + ' <span class="muted small">(' + modLabel(m) + ', signed by ' + esc(c.signerName) + ')</span>' });
-    });
     prog.hours.forEach(function (h) { var m = CUR.modulesById[h.moduleId]; items.push({ at: h.createdAt, html: '<span class="badge">⏱ ' + hrs(h.hours) + '</span> logged on ' + modLabel(m) + ' ' + esc(m.title) }); });
     items.sort(function (a, b) { return b.at.localeCompare(a.at); });
     return items.length ? '<ul class="activity">' + items.slice(0, n).map(function (r) { return '<li><span>' + r.html + '</span><time>' + relTime(r.at) + '</time></li>'; }).join('') + '</ul>'
-      : '<p class="muted">No activity yet. Lessons, written tests, check-offs and hours will show up here.</p>';
+      : '<p class="muted">No activity yet. Lessons, written tests and hours will show up here.</p>';
   }
 
   function viewProgram() {
     setTitle('Program');
     var sum = S.progress.summary;
     app.innerHTML = '<div class="page-head"><h1>📚 Program</h1><p class="muted">' + esc(CUR.program.title || 'Electronics Technician Program') + ': 4 phases, ' + CUR.modules.length + ' modules, ' + CUR.coreHours + ' core hours. ' +
-      'A module is <strong>complete</strong> only when its written test is passed <strong>and</strong> every required practical check-off is signed by an instructor. Hours are credited when a module is complete.</p></div>' +
+      'A module is <strong>complete</strong> as soon as its written test is passed (or you test out). Hours are credited when a module is complete.</p></div>' +
       safetyCard(sum, true) +
       sum.phases.map(function (ph) {
         var P = CUR.phasesById[ph.id];
@@ -186,7 +181,7 @@
     var tags = (m.safety ? '<span class="tag safety">Level 0 · 100%</span>' : '') + (m.gated ? '<span class="tag gated">Needs Level 0</span>' : '') + (m.workmanship ? '<span class="tag work">Workmanship</span>' : '');
     return '<li class="mod-row ' + (ms.locked ? 'is-locked' : '') + '"><a href="#/module/' + m.id + '"><span class="lesson-num">' + (ms.locked ? '🔒' : m.number) + '</span>' +
       '<span class="lesson-title">' + esc(m.title) + ' ' + tags + '<small>' + m.hours + ' h · ' + ms.lessons.done + '/' + ms.lessons.total + ' lessons · written ' + (ms.written.passed ? '✓ ' + pct(ms.written.bestPercent) : ms.written.bestPercent != null ? pct(ms.written.bestPercent) : '—') +
-      ' (pass ' + ms.written.passPercent + '%) · check-offs ' + ms.checkoffs.passed + '/' + ms.checkoffs.required + (ms.loggedHours ? ' · ' + hrs(ms.loggedHours) + ' logged' : '') + '</small></span>' +
+      ' (pass ' + ms.written.passPercent + '%)' + (ms.loggedHours ? ' · ' + hrs(ms.loggedHours) + ' logged' : '') + '</small></span>' +
       '<span class="lesson-status">' + statusBadge(ms.status) + '</span></a></li>';
   }
 
@@ -210,24 +205,22 @@
     var allStudied = m.lessons.length && m.lessons.every(function (l) { var s = lessonState(l.id); return s && s.method === 'study'; });
     var testPct = allStudied ? m.passPercent : m.testOutPercent, tries = S.progress.attempts.filter(function (a) { return a.moduleId === id && a.kind === 'module'; });
     var list = function (title, arr) { return arr && arr.length ? '<h3>' + title + '</h3><ul class="bullets">' + arr.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : ''; };
-    var powerBlock = !adv && m.number >= 4 && !sum.safety.powerAllowed;
     app.innerHTML = '<nav class="crumbs"><a href="#/program">Program</a> › ' + (adv ? '<a href="#/advanced">Advanced track</a>' : '<a href="#/program?ph=' + ph.id + '">Phase ' + ph.number + '</a>') + ' › ' + modLabel(m) + '</nav>' +
       '<section class="card level-banner module-banner" style="--accent:' + (adv ? '#7c3aed' : phaseColor(m.phase)) + '"><span class="level-icon big">' + (ms.locked ? '🔒' : m.safety ? '🛡️' : m.workmanship ? '🔧' : adv ? '🚀' : '📘') + '</span><div class="grow">' +
       '<div class="eyebrow">' + (adv ? 'Advanced track (optional, outside core hours)' : 'Phase ' + m.phase + ': ' + esc(ph.title)) + ' · Module ' + m.number + ' · ' + m.hours + ' h</div><h1>' + esc(m.title) + '</h1>' +
       '<div class="banner-tags">' + statusBadge(ms.status) + (m.safety ? '<span class="tag safety">Level 0 · 100% required · no test-out below 100%</span>' : '') + (m.gated ? '<span class="tag gated">Unlocks after Level 0</span>' : '') + (m.workmanship ? '<span class="tag work">Workmanship module</span>' : '') + '</div>' +
       bar(ms.lessons.total ? ms.lessons.done / ms.lessons.total * 100 : 0, adv ? '#7c3aed' : phaseColor(m.phase)) + '<p class="small">' + ms.lessons.done + ' of ' + ms.lessons.total + ' lessons · ' + ms.lessons.studied + ' studied · ' + ms.lessons.testedOut + ' tested out' + (ms.loggedHours ? ' · ' + hrs(ms.loggedHours) + ' logged' : '') + '</p></div></section>' +
-      (ms.locked ? '<div class="callout warn">🔒 <strong>Locked.</strong> ' + esc(CUR.level0.rule) + ' You can read the outline below; lessons, tests, hours and check-offs open once Level 0 is complete.</div>' : '') +
-      (powerBlock ? '<div class="callout">⚡ Bench-power practicals can’t be signed off until the Module 1 safety written test is passed at 100%.</div>' : '') +
+      (ms.locked ? '<div class="callout warn">🔒 <strong>Locked.</strong> ' + esc(CUR.level0.rule) + ' You can read the outline below; lessons, tests and hours open once Level 0 is complete.</div>' : '') +
       '<div class="two-col wide-left"><div>' +
       '<section class="card module-outline">' + (adv ? '<h3>Content</h3><p>' + esc(m.content || '') + '</p>' + (m.drawnFrom ? '<p class="muted small">Drawn from: ' + esc(m.drawnFrom) + '</p>' : '') :
-        list('Objectives', m.objectives) + list('Topics', m.topics) + list('Labs', m.labs) + '<h3>Assessment</h3><p>' + esc(m.assessment || '') + '</p>' +
+        list('Objectives', m.objectives) + list('Topics', m.topics) + '<h3>Assessment</h3><p>' + esc(m.assessment || '') + '</p>' +
         '<p class="small muted">Written-test pass mark: <strong>' + m.passPercent + '%</strong>' + (m.passSource === 'curriculum' ? ' (from the curriculum)' : ' (app default — the curriculum does not state one)') + '.</p>') + '</section>' +
       '<section class="card"><h2>Lessons</h2>' + (m.lessons.length ? '<ol class="lesson-list">' + m.lessons.map(function (l) {
         var st = lessonState(l.id);
         return '<li class="with-action"><a href="#/lesson/' + l.id + '"><span class="lesson-num">' + (l.index + 1) + '</span><span class="lesson-title">' + esc(l.title) + '<small>' + esc(l.summary) + '</small></span>' +
           '<span class="lesson-status">' + (methodBadge(st) || '<span class="muted small">' + l.minutes + ' min</span>') + '</span></a>' +
           (st || ms.locked ? '' : '<a class="btn tiny ghost" href="#/quiz/testout-lesson/' + l.id + '" title="Score ' + m.testOutPercent + '% to skip this lesson">Test out</a>') + '</li>';
-      }).join('') + '</ol>' : '<p class="muted">No app lessons for this module yet — use the outline and your instructor’s materials.</p>') + '</section>' +
+      }).join('') + '</ol>' : '<p class="muted">No app lessons for this module yet — use the outline above.</p>') + '</section>' +
       (m.sims && m.sims.length ? '<section class="card"><h2>🔌 Simulator examples</h2><div class="quick-links">' + m.sims.map(function (k) { return '<a href="#/simulator?preset=' + k + '">' + esc(simName(k)) + '</a>'; }).join('') + '</div></section>' : '') +
       '</div><aside>' +
       completionCard(m, ms) +
@@ -236,28 +229,18 @@
         '<p class="small">Best: <strong>' + pct(ms.written.bestPercent) + '</strong> · ' + ms.written.attempts + ' attempt' + (ms.written.attempts === 1 ? '' : 's') + (ms.written.passed ? ' · <span class="badge pass">Passed</span>' : '') + '</p>' +
         (ms.locked ? '<button class="btn block" disabled>Locked</button>' : '<a class="btn block" href="#/quiz/module/' + id + '">' + (ms.written.passed ? 'Retake' : allStudied ? 'Take the written test' : 'Test out at ' + testPct + '%') + '</a>') +
         (tries.length ? '<ul class="activity compact">' + tries.slice(0, 4).map(function (a) { return '<li><span><span class="badge ' + (a.passed ? 'pass' : 'fail') + '">' + pct(a.percent) + '</span> ' + (a.mode === 'test-out' ? 'Test-out' : 'Test') + ' (needs ' + a.requiredPercent + '%)</span><time>' + relTime(a.createdAt) + '</time></li>'; }).join('') + '</ul>' : '') + '</section>' : '') +
-      (m.defectExercise ? '<section class="card"><h2>🔍 Seeded-defect exercise</h2><p class="small muted">Practise on a randomly seeded virtual board: find ≥' + window.EA_DEFECTS.PASS_PERCENT + '% of seeded defects with at most ' + window.EA_DEFECTS.MAX_FALSE_CALLS + ' false call. Practice only — the check-off is signed by your instructor on a physical board.</p>' +
+      (m.defectExercise ? '<section class="card"><h2>🔍 Seeded-defect exercise</h2><p class="small muted">Practise on a randomly seeded virtual board: find ≥' + window.EA_DEFECTS.PASS_PERCENT + '% of seeded defects with at most ' + window.EA_DEFECTS.MAX_FALSE_CALLS + ' false call. Self-checked practice: the app grades it instantly.</p>' +
         (ms.defectPractice && ms.defectPractice.attempts ? '<p class="small">Best: <strong>' + pct(ms.defectPractice.bestPercent) + '</strong> over ' + ms.defectPractice.attempts + ' attempt(s)' + (ms.defectPractice.passed ? ' · <span class="badge pass">met 90%</span>' : '') + '</p>' : '') +
         (ms.locked ? '<button class="btn block" disabled>Locked</button>' : '<a class="btn block secondary" href="#/defects">Start an inspection</a>') + '</section>' : '') +
-      checkoffCard(m, ms) + (adv ? '' : hoursCard(m, ms)) + '</aside></div>';
+      (adv ? '' : hoursCard(m, ms)) + '</aside></div>';
     bindHoursForm(m);
   }
   function completionCard(m, ms) {
-    if (m.track === 'advanced' && !m.checkoffs.length) return '';
-    var co = ms.checkoffs, ok1 = ms.written.passed, ok2 = co.passed === co.required;
+    if (m.track === 'advanced') return '';
+    var ok = ms.written.passed;
     return '<section class="card completion ' + (ms.complete ? 'done' : '') + '"><h2>' + (ms.complete ? '✅ Module complete' : 'Completion') + '</h2><ul class="checklist">' +
-      '<li class="' + (ok1 ? 'ok' : '') + '">' + (ok1 ? '✓' : '○') + ' Written test passed (' + m.passPercent + '%)</li>' +
-      '<li class="' + (ok2 ? 'ok' : '') + '">' + (ok2 ? '✓' : '○') + ' Practical check-offs signed: ' + co.passed + ' of ' + co.required + '</li></ul>' +
-      (ms.complete ? '<p class="small">Completed ' + fmtDate(ms.completedAt) + (m.track === 'core' ? ' · <strong>' + m.hours + ' h</strong> credited' : '') + '.</p>' : '<p class="small muted">' + (m.track === 'core' ? m.hours + ' h are credited when both are done.' : '') + '</p>') + '</section>';
-  }
-  function checkoffCard(m, ms) {
-    if (!m.checkoffs.length) return '';
-    return '<section class="card checkoffs"><h2>🖊️ Practical check-offs</h2><p class="small muted">Signed by an instructor (admin) with the date performed, result and a note. The latest signature for each item counts.</p><ul class="co-list">' +
-      ms.checkoffs.items.map(function (it) {
-        return '<li class="co-item ' + it.status + '"><div class="co-top">' + coPill(it.status) + ' <strong>' + esc(it.title) + '</strong> <span class="tag">' + (it.kind === 'assessment' ? 'assessment' : 'lab') + '</span></div>' +
-          '<div class="small muted">' + esc(it.standard) + '</div>' +
-          (it.signedAt ? '<div class="small co-sig">Performed ' + esc(it.performedOn) + ' · signed by <strong>' + esc(it.signerName) + '</strong> ' + relTime(it.signedAt) + (it.note ? ' · “' + esc(it.note) + '”' : '') + (it.history > 1 ? ' · ' + it.history + ' sign-offs' : '') + '</div>' : '') + '</li>';
-      }).join('') + '</ul></section>';
+      '<li class="' + (ok ? 'ok' : '') + '">' + (ok ? '✓' : '○') + ' Written test passed (' + m.passPercent + '%) or tested out (' + m.testOutPercent + '%)</li></ul>' +
+      (ms.complete ? '<p class="small">Completed ' + fmtDate(ms.completedAt) + ' · <strong>' + m.hours + ' h</strong> credited.</p>' : '<p class="small muted">' + m.hours + ' h are credited when you pass.</p>') + '</section>';
   }
   function hoursCard(m, ms) {
     var mine = S.progress.hours.filter(function (h) { return h.moduleId === m.id; });
@@ -295,7 +278,7 @@
     var sum = S.progress.summary, H = S.progress.hours;
     var open = CUR.modules.filter(function (m) { return !modSum(m.id).locked; });
     var week = H.filter(function (h) { return Date.now() - new Date(h.workDate + 'T12:00:00').getTime() < 7 * 86400000; }).reduce(function (a, h) { return a + h.hours; }, 0);
-    app.innerHTML = '<div class="page-head"><h1>⏱️ Hours</h1><p class="muted">Track time against the ' + sum.coreHours + '-hour core program. <strong>Credited</strong> hours come from completed modules (written test + check-offs); <strong>logged</strong> hours are the time you record.</p></div>' +
+    app.innerHTML = '<div class="page-head"><h1>⏱️ Hours</h1><p class="muted">Track time against the ' + sum.coreHours + '-hour core program. <strong>Credited</strong> hours come from completed modules (written test passed); <strong>logged</strong> hours are the time you record.</p></div>' +
       '<section class="stats">' + stat('✅', hrs(sum.hoursCredited), 'Credited of ' + sum.coreHours + ' h') + stat('⏱️', hrs(sum.loggedHours), 'Logged in total') + stat('📅', hrs(week), 'Logged last 7 days') + stat('📈', pct(sum.percent), 'Program credited') + '</section>' +
       '<div class="two-col wide-left"><section class="card table-card"><h2>By module</h2><table class="simple-table hours-table"><thead><tr><th>Module</th><th>Planned</th><th>Logged</th><th>Credited</th><th>Status</th></tr></thead><tbody>' +
       CUR.modules.map(function (m) {
@@ -406,7 +389,7 @@
       '<div class="btn-row">' + (prev ? '<a class="btn ghost" href="#/lesson/' + prev.id + '">← ' + esc(prev.title) + '</a>' : '') + (next ? '<a class="btn ghost" href="#/lesson/' + next.id + '">' + esc(next.title) + ' →</a>' : '<a class="btn ghost" href="#/module/' + m.id + '">Back to ' + modLabel(m) + ' →</a>') + '</div></footer>' +
       '</article><aside class="lesson-aside"><section class="card"><h3>✅ Quick check</h3><p class="muted small">' + l.questions.length + ' practice questions on this lesson, with explanations.</p>' + (ms.locked ? '<button class="btn block" disabled>Locked</button>' : '<a class="btn block" href="#/quiz/lesson/' + l.id + '">Check my understanding</a>') + '</section>' +
       (st || ms.locked ? '' : '<section class="card testout-cta"><h3>⚡ Already know this?</h3><p class="muted small">Score ' + m.testOutPercent + '%' + (m.safety ? ' (Level 0 — no test-out below 100%)' : '+') + ' to mark it complete via test-out.</p><a class="btn block secondary" href="#/quiz/testout-lesson/' + l.id + '">Test out of this lesson</a></section>') +
-      '<section class="card"><h3>' + modLabel(m) + ' written test</h3><p class="muted small">Pass mark ' + m.passPercent + '%. Module completion also needs instructor check-offs.</p><a class="btn block ghost" href="#/module/' + m.id + '">Module overview</a></section>' +
+      '<section class="card"><h3>' + modLabel(m) + ' written test</h3><p class="muted small">Pass mark ' + m.passPercent + '%. Passing it completes the module.</p><a class="btn block ghost" href="#/module/' + m.id + '">Module overview</a></section>' +
       '</aside></div>';
     renderComplete();
     function renderComplete() {
@@ -453,8 +436,8 @@
       '<ul class="quiz-facts"><li><strong>' + count + '</strong> multiple-choice questions</li><li>Pass mark <strong>' + need + '%</strong> (' + Math.ceil(count * need / 100 - 1e-9) + ' of ' + count + ')</li>' +
       '<li>You’ll see the explanation after each answer</li></ul>' +
       (m.safety && kind !== 'lesson' ? '<div class="callout warn">🛡️ Level 0 safety module: <strong>100% required</strong>, no test-out below 100%. You may retake as often as you need.</div>' : '') +
-      (isTestOut ? '<div class="callout">Passing marks ' + (lesson ? 'this lesson' : 'every remaining lesson in ' + modLabel(m)) + ' as <strong>completed via test-out</strong>' + (kind === 'module' ? ' and counts as the module’s written test' : '') + '. Practical check-offs are still required for module completion.</div>' : '') +
-      (kind === 'module' && !isTestOut ? '<div class="callout">Passing the written test is half of module completion — your instructor also signs the practical check-offs.</div>' : '') +
+      (isTestOut ? '<div class="callout">Passing marks ' + (lesson ? 'this lesson' : 'every remaining lesson in ' + modLabel(m)) + ' as <strong>completed via test-out</strong>' + (kind === 'module' ? ' and counts as the module’s written test' : '') + '.</div>' : '') +
+      (kind === 'module' && !isTestOut ? '<div class="callout">Passing the written test completes ' + modLabel(m) + (m.track === 'core' ? ' and credits its ' + m.hours + ' h' : '') + '.</div>' : '') +
       '<div class="btn-row"><button class="btn" id="startQuiz">Start</button><a class="btn ghost" href="' + back + '">Cancel</a></div></div>';
     document.getElementById('startQuiz').addEventListener('click', function () {
       this.disabled = true;
@@ -493,8 +476,7 @@
       box.innerHTML = '<p class="muted">Saving your result…</p>';
       api('POST', '/quiz/' + session.sessionId + '/submit', { answers: answers }).then(function (d) {
         S.progress = d.progress; var r = d.result, granted = r.grantedLessons || [], ms2 = modSum(m.id);
-        var after = kind !== 'module' ? '' : r.passed ? (ms2.complete ? '<div class="callout ok">✅ <strong>' + modLabel(m) + ' is complete</strong> — written test passed and all check-offs signed.' + (m.track === 'core' ? ' ' + m.hours + ' h credited.' : '') + '</div>'
-          : ms2.checkoffs.required ? '<div class="callout ok">Written test passed. <strong>' + (ms2.checkoffs.required - ms2.checkoffs.passed) + ' practical check-off(s)</strong> still need an instructor’s signature before ' + modLabel(m) + ' is complete.</div>' : '') : '';
+        var after = kind !== 'module' ? '' : r.passed ? (ms2.complete ? '<div class="callout ok">✅ <strong>' + modLabel(m) + ' is complete</strong> — written test passed.' + (m.track === 'core' ? ' ' + m.hours + ' h credited.' : '') + '</div>' : '') : '';
         box.innerHTML = '<div class="quiz-result ' + (r.passed ? 'passed' : 'failed') + '">' + ring(r.percent, 150) +
           '<h1>' + (r.passed ? (isTestOut ? 'Tested out! ⚡' : 'Passed! 🎉') : 'Keep practising 💪') + '</h1>' +
           '<p>You scored <strong>' + r.score + ' / ' + r.total + '</strong> (' + pct(r.percent) + '). Pass mark: ' + r.requiredPercent + '%.</p>' + after +
@@ -517,7 +499,7 @@
     setTitle('Defect inspection');
     app.innerHTML = '<nav class="crumbs"><a href="#/program">Program</a> › <a href="#/module/m17">M17</a> › Seeded-defect exercise</nav>' +
       '<div class="page-head"><h1>🔍 Seeded-defect inspection</h1><p class="muted">Module 17 practice. A virtual board has been seeded with defects. Inspect all 12 locations and record the condition you see. Pass: find ≥' + D.PASS_PERCENT + '% of seeded defects with the right type, with no more than ' + D.MAX_FALSE_CALLS + ' false call. ' +
-      'This is practice — the M17 check-off is signed by your instructor on a physical board.</p></div><div id="dxBox"><p class="muted">Preparing a board…</p></div>';
+      'Self-checked practice: the app grades each board instantly.</p></div><div id="dxBox"><p class="muted">Preparing a board…</p></div>';
     var box = document.getElementById('dxBox');
     if (ms.locked) { box.innerHTML = '<div class="callout warn">🔒 Module 17 unlocks after Level 0 (Modules 1 and 2) is complete.</div>'; return; }
     api('POST', '/quiz/start', { kind: 'defect-practice' }).then(function (s) {
@@ -589,26 +571,24 @@
       var active = learners.filter(function (u) { return u.summary.lastActivity && Date.now() - new Date(u.summary.lastActivity) < 7 * 86400000; }).length;
       var avgH = learners.length ? learners.reduce(function (s, u) { return s + u.summary.hoursCredited; }, 0) / learners.length : 0;
       var cleared = learners.filter(function (u) { return u.summary.safety.gateCleared; }).length;
-      var waiting = learners.reduce(function (s, u) { return s + u.summary.modulesAwaitingCheckoffs; }, 0);
-      app.innerHTML = '<div class="page-head row"><div><h1>👥 Team dashboard</h1><p class="muted">Phase, hours against the ' + CUR.coreHours + '-hour program, Level 0 safety status and practical check-offs. Select a person to sign check-offs or log hours.</p></div>' +
+      app.innerHTML = '<div class="page-head row"><div><h1>👥 Team dashboard</h1><p class="muted">Phase, hours against the ' + CUR.coreHours + '-hour program, Level 0 safety status and written tests. Select a person to see their modules, log hours or reset their password.</p></div>' +
         '<div class="btn-row"><a class="btn ghost" href="#/admin/report">📧 Weekly report</a><button class="btn" id="addBtn">+ Add member</button></div></div>' +
         '<section class="stats">' + stat('👥', learners.length, 'Learners') + stat('🔥', active + '/' + learners.length, 'Active in last 7 days') +
         stat('⏱️', hrs(avgH), 'Avg hours credited') + stat('🛡️', cleared + '/' + learners.length, 'Level 0 cleared') + '</section>' +
-        (waiting ? '<div class="callout">🖊️ <strong>' + waiting + '</strong> module' + (waiting === 1 ? '' : 's') + ' across the team ' + (waiting === 1 ? 'has' : 'have') + ' a passed written test and ' + (waiting === 1 ? 'is' : 'are') + ' waiting for practical check-offs.</div>' : '') +
         '<section class="card" id="addCard" hidden><h2>Add a team member</h2><form id="addForm" class="form form-inline">' +
         '<label class="field"><span>Name</span><input name="name" required placeholder="Jane Doe"></label>' +
         '<label class="field"><span>Email</span><input name="email" type="email" required placeholder="jane@company.com"></label>' +
         '<label class="field"><span>Role</span><select name="role"><option value="learner">Learner</option><option value="admin">Admin</option></select></label>' +
         '<label class="field"><span>Temporary password <small>(optional)</small></span><input name="password" type="text" placeholder="leave blank to create an invite link" minlength="8"></label>' +
         '<button class="btn">Create</button></form><div id="addOut"></div></section>' +
-        '<section class="card table-card"><table class="team-table"><thead><tr><th>Member</th><th>Phase · current module</th><th>Hours credited</th><th>Safety</th><th>Check-offs</th><th>Modules</th><th>Avg written</th><th>Last active</th></tr></thead><tbody>' +
+        '<section class="card table-card"><table class="team-table"><thead><tr><th>Member</th><th>Phase · current module</th><th>Hours credited</th><th>Safety</th><th>Modules</th><th>Avg written</th><th>Last active</th></tr></thead><tbody>' +
         d.users.map(function (u) {
           var s = u.summary, cm = s.currentModule && CUR.modulesById[s.currentModule.id];
           return '<tr data-href="#/admin/user/' + u.id + '" tabindex="0"><td><div class="member"><span class="avatar">' + esc(initials(u.name)) + '</span><div><a href="#/admin/user/' + u.id + '">' + esc(u.name) + '</a>' +
             (u.role === 'admin' ? ' <span class="badge">admin</span>' : '') + (u.invitePending ? ' <span class="badge pending">invite pending</span>' : '') + '<div class="muted small">' + esc(u.email) + '</div></div></div></td>' +
-            '<td>' + (cm ? '<span class="tag" style="--tag:' + phaseColor(cm.phase) + '">P' + cm.phase + '</span> M' + cm.number + ' · ' + esc(cm.title) + (s.currentModule.status === 'awaiting-checkoffs' ? ' <span class="badge st-await">awaiting check-offs</span>' : '') : '🏁 Done') + '</td>' +
+            '<td>' + (cm ? '<span class="tag" style="--tag:' + phaseColor(cm.phase) + '">P' + cm.phase + '</span> M' + cm.number + ' · ' + esc(cm.title) : '🏁 Done') + '</td>' +
             '<td class="prog-cell">' + bar(s.percent) + '<span class="small">' + hrs(s.hoursCredited) + ' / ' + s.coreHours + ' · logged ' + hrs(s.loggedHours) + '</span></td>' +
-            '<td>' + safetyBadge(s.safety.status) + '</td><td>' + s.checkoffsPassed + '/' + s.checkoffsRequired + '</td>' +
+            '<td>' + safetyBadge(s.safety.status) + '</td>' +
             '<td><div class="mini-mods">' + s.modules.map(function (ms) { return '<span class="mini ' + miniCls(ms) + '" title="M' + ms.number + ' ' + esc(ms.title) + ' — ' + (STATUS[ms.status] || [])[1] + '">' + ms.number + '</span>'; }).join('') + '</div></td>' +
             '<td>' + pct(s.averageWrittenPercent) + '</td><td>' + relTime(s.lastActivity) + '</td></tr>';
         }).join('') + '</tbody></table></section>';
@@ -640,7 +620,7 @@
     api('GET', '/admin/users/' + id).then(function (d) { renderAdminUser(d.user, d.progress, params || {}); }).catch(function (e) { app.innerHTML = errorBox(e); });
   }
   function renderAdminUser(u, p, params) {
-    var s = p.summary, self = u.id === S.user.id;
+    var s = p.summary;
     var sel = params.module || adminSel[u.id] || (s.currentModule ? s.currentModule.id : 'm1');
     adminSel[u.id] = sel;
     var m = CUR.modulesById[sel], ms = modSum(sel, p);
@@ -652,42 +632,30 @@
       ' · <button class="link-btn" id="resetPw" title="Make a one-time link to set a new password (valid 14 days)">Reset password</button></p></div></div>' +
       '<p>Current module: <strong>' + (cm ? 'Phase ' + cm.phase + ' · M' + cm.number + ' — ' + esc(cm.title) : 'All complete') + '</strong> ' + (s.currentModule ? statusBadge(s.currentModule.status) : '') + '<br><span class="small muted">Joined ' + fmtDate(u.createdAt) + ' · Last sign-in ' + relTime(u.lastLoginAt) + ' · Last activity ' + relTime(s.lastActivity) + '</span></p><div id="reinvOut"></div></div>' +
       '<div class="hero-ring">' + ring(s.percent, 130) + '<div class="muted small">' + hrs(s.hoursCredited) + ' / ' + s.coreHours + ' h credited</div></div></section>' +
-      '<section class="stats">' + stat('🧩', s.modulesComplete + '/' + s.modulesTotal, 'Modules complete') + stat('🖊️', s.checkoffsPassed + '/' + s.checkoffsRequired, 'Check-offs signed') + stat('⏱️', hrs(s.loggedHours), 'Hours logged') + stat('🎯', pct(s.averageWrittenPercent), 'Avg written test') + '</section>' +
+      '<section class="stats">' + stat('🧩', s.modulesComplete + '/' + s.modulesTotal, 'Modules complete') + stat('📖', s.lessonsDone + '/' + s.lessonsTotal, 'Lessons done') + stat('⏱️', hrs(s.loggedHours), 'Hours logged') + stat('🎯', pct(s.averageWrittenPercent), 'Avg written test') + '</section>' +
       safetyCardFor(s, p) +
-      '<div class="two-col wide-left"><section class="card table-card"><h2>Modules</h2><table class="simple-table admin-mods"><thead><tr><th>Module</th><th>Written</th><th>Check-offs</th><th>Hours</th><th>Status</th></tr></thead><tbody>' +
+      '<div class="two-col wide-left"><section class="card table-card"><h2>Modules</h2><table class="simple-table admin-mods"><thead><tr><th>Module</th><th>Written</th><th>Lessons</th><th>Hours</th><th>Status</th></tr></thead><tbody>' +
       s.modules.map(function (x) {
         return '<tr class="' + (x.id === sel ? 'is-sel' : '') + (x.locked ? ' is-locked' : '') + '"><td><a href="#/admin/user/' + u.id + '?module=' + x.id + '">M' + x.number + ' ' + esc(x.title) + '</a></td>' +
           '<td>' + (x.written.bestPercent != null ? '<span class="badge ' + (x.written.passed ? 'pass' : 'fail') + '">' + pct(x.written.bestPercent) + '</span>' + (x.written.method === 'test-out' ? ' <span class="small testout-text">test-out</span>' : '') : '—') + '</td>' +
-          '<td>' + x.checkoffs.passed + '/' + x.checkoffs.required + (x.checkoffs.failed ? ' <span class="small error-text">' + x.checkoffs.failed + ' fail</span>' : '') + '</td><td>' + (x.loggedHours ? hrs(x.loggedHours) : '—') + ' / ' + x.hours + '</td><td>' + statusBadge(x.status) + '</td></tr>';
+          '<td>' + x.lessons.done + '/' + x.lessons.total + '</td><td>' + (x.loggedHours ? hrs(x.loggedHours) : '—') + ' / ' + x.hours + '</td><td>' + statusBadge(x.status) + '</td></tr>';
       }).join('') + '</tbody></table></section>' +
-      '<aside><section class="card sign-card" id="signCard"><h2>🖊️ Sign check-offs</h2>' +
-      '<label class="field"><span>Module</span><select id="signModule">' + CUR.modules.map(function (x) { return '<option value="' + x.id + '"' + (x.id === sel ? ' selected' : '') + '>M' + x.number + ' ' + esc(x.title) + '</option>'; }).join('') + '</select></label>' +
-      (self ? '<div class="callout warn">You can’t sign off your own practicals — another instructor must do it.</div>' : '') +
+      '<aside><section class="card module-card" id="moduleCard"><h2>📘 Module detail</h2>' +
+      '<label class="field"><span>Module</span><select id="admModule">' + CUR.modules.map(function (x) { return '<option value="' + x.id + '"' + (x.id === sel ? ' selected' : '') + '>M' + x.number + ' ' + esc(x.title) + '</option>'; }).join('') + '</select></label>' +
       (ms.locked ? '<div class="callout warn">🔒 Locked for ' + esc(u.name.split(' ')[0]) + ' until Level 0 is complete.</div>' : '') +
-      (m.number >= 4 && !s.safety.powerAllowed ? '<div class="callout warn">⚡ Module 1 written test not yet passed at 100% — bench-power practicals can’t be signed.</div>' : '') +
-      '<p class="small">Written test: ' + (ms.written.passed ? '<span class="badge pass">passed ' + pct(ms.written.bestPercent) + '</span>' : '<span class="badge pending">' + (ms.written.bestPercent != null ? 'best ' + pct(ms.written.bestPercent) : 'not taken') + '</span>') + ' · needs ' + m.passPercent + '%</p>' +
-      '<ul class="co-list">' + ms.checkoffs.items.map(function (it) {
-        return '<li class="co-item ' + it.status + '"><div class="co-top">' + coPill(it.status) + ' <strong>' + esc(it.title) + '</strong></div><div class="small muted">' + esc(it.standard) + '</div>' +
-          (it.signedAt ? '<div class="small co-sig">Performed ' + esc(it.performedOn) + ' · ' + esc(it.signerName) + (it.note ? ' · “' + esc(it.note) + '”' : '') + '</div>' : '') +
-          (self || ms.locked ? '' : '<form class="form co-form" data-item="' + it.id + '"><div class="form-row"><label class="field"><span>Date performed</span><input type="date" name="performedOn" required value="' + today() + '"></label>' +
-            '<div class="field"><span>Result</span><div class="seg"><label><input type="radio" name="status" value="pass" checked> Pass</label><label><input type="radio" name="status" value="fail"> Fail</label></div></div></div>' +
-            '<label class="field"><span>Note</span><input name="note" maxlength="1000" placeholder="Observations, re-train items…"></label><button class="btn small">Sign ' + (it.status === 'pending' ? '' : 'again') + '</button></form>') + '</li>';
-      }).join('') + '</ul></section>' +
+      '<p class="small">' + statusBadge(ms.status) + (ms.complete ? ' · completed ' + fmtDate(ms.completedAt) + ' · ' + m.hours + ' h credited' : '') + '</p>' +
+      '<p class="small">Written test: ' + (ms.written.passed ? '<span class="badge pass">passed ' + pct(ms.written.bestPercent) + '</span>' + (ms.written.method === 'test-out' ? ' <span class="small testout-text">test-out</span>' : '') : '<span class="badge pending">' + (ms.written.bestPercent != null ? 'best ' + pct(ms.written.bestPercent) : 'not taken') + '</span>') +
+        ' · needs ' + m.passPercent + '% · ' + ms.written.attempts + ' attempt' + (ms.written.attempts === 1 ? '' : 's') + '</p>' +
+      '<p class="small">Lessons: <strong>' + ms.lessons.done + '/' + ms.lessons.total + '</strong> (' + ms.lessons.studied + ' studied, ' + ms.lessons.testedOut + ' tested out)</p>' +
+      (ms.defectPractice ? '<p class="small">Seeded-defect practice: ' + (ms.defectPractice.attempts ? 'best <strong>' + pct(ms.defectPractice.bestPercent) + '</strong> over ' + ms.defectPractice.attempts + ' attempt(s)' : 'not tried yet') + '</p>' : '') +
+      '<p class="small muted">Modules complete automatically when the written test is passed; there is nothing to sign off.</p></section>' +
       '<section class="card"><h2>⏱️ Log hours</h2><form class="form" id="admHours"><label class="field"><span>Module</span><select name="moduleId">' + CUR.modules.map(function (x) { return '<option value="' + x.id + '"' + (x.id === sel ? ' selected' : '') + '>M' + x.number + ' ' + esc(x.title) + '</option>'; }).join('') + '</select></label>' +
       '<div class="form-row"><label class="field"><span>Hours</span><input name="hours" type="number" min="0.25" max="24" step="0.25" value="4" required></label><label class="field"><span>Date</span><input name="workDate" type="date" value="' + today() + '" required></label></div>' +
       '<label class="field"><span>Note</span><input name="note" maxlength="500"></label><button class="btn small">Log for ' + esc(u.name.split(' ')[0]) + '</button></form>' +
       (p.hours.length ? '<ul class="activity compact">' + p.hours.slice(0, 6).map(function (h) { return '<li><span><span class="tag">' + modLabel(CUR.modulesById[h.moduleId]) + '</span> <strong>' + hrs(h.hours) + '</strong> · ' + esc(h.workDate) + (h.note ? ' · ' + esc(h.note) : '') + (h.loggerRole === 'admin' ? ' <span class="tag">by ' + esc(h.loggedByName) + '</span>' : '') + '</span></li>'; }).join('') + '</ul>' : '') + '</section></aside></div>' +
       '<section class="card"><h2>Activity</h2>' + activityList(p, 15) + '</section>';
     var reload = function (d) { renderAdminUser(u, d.progress, {}); };
-    document.getElementById('signModule').addEventListener('change', function () { adminSel[u.id] = this.value; renderAdminUser(u, p, { module: this.value }); });
-    app.querySelectorAll('.co-form').forEach(function (f) {
-      f.addEventListener('submit', function (e) {
-        e.preventDefault();
-        var status = f.querySelector('input[name=status]:checked').value;
-        api('POST', '/admin/users/' + u.id + '/checkoffs', { moduleId: sel, itemId: f.getAttribute('data-item'), status: status, performedOn: f.performedOn.value, note: f.note.value })
-          .then(function (d) { toast('Signed: ' + (status === 'pass' ? 'pass' : 'fail'), 'ok'); reload(d); }).catch(function (err) { toast(err.message, 'error'); });
-      });
-    });
+    document.getElementById('admModule').addEventListener('change', function () { adminSel[u.id] = this.value; renderAdminUser(u, p, { module: this.value }); });
     document.getElementById('admHours').addEventListener('submit', function (e) {
       e.preventDefault(); var f = e.target;
       api('POST', '/admin/users/' + u.id + '/hours', { moduleId: f.moduleId.value, hours: +f.hours.value, workDate: f.workDate.value, note: f.note.value })

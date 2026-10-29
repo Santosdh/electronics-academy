@@ -366,7 +366,7 @@ ${STD_NOTE}`,
 <ul><li><strong>Safety and ESD</strong> (Modules 1–2) throughout.</li>
 <li><strong>Documentation</strong> (Module 14): build to the released drawings, BOM and work instruction; keep the traveler.</li>
 <li><strong>Workmanship</strong> (Modules 15–18): through-hole, SMT and harness work.</li>
-<li><strong>Inspection</strong> (Module 17): self-inspect and log defects before the instructor inspection.</li>
+<li><strong>Inspection</strong> (Module 17): self-inspect and log defects before final inspection.</li>
 <li><strong>Functional test</strong> (Modules 4, 8, 11, 13): verify supply output, ripple and counter operation against the test procedure.</li>
 <li><strong>Troubleshooting</strong> (Module 19): find and fix anything that fails, and document it.</li></ul>
 <h3>Rubric areas</h3>

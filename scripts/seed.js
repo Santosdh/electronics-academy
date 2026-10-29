@@ -64,15 +64,11 @@ function seedProgress(db, ids, now) {
     pick.questionIds.forEach((id, i) => { const q = C.questionsById[id]; answers[id] = i < pick.questionIds.length - wrong ? q.answer : (q.answer + 1) % q.options.length; });
     return P.recordAttempt(db, uid, { id: null, kind, module_id: pick.moduleId, lesson_id: pick.lessonId, question_ids: JSON.stringify(pick.questionIds) }, answers, at);
   };
-  const sign = (uid, itemId, status, days, note) => P.signCheckoff(db, { userId: uid, moduleId: itemId.split('-')[0], itemId, status,
-    performedOn: day(days), note, signer: admin, when: ago(days, -2) });
-  const signAll = (uid, mid, days, note) => C.modulesById[mid].checkoffs.forEach((c, i) => sign(uid, c.id, 'pass', days - i * 0.2, note));
   const hours = (uid, mid, h, days, note, byAdmin) => P.logHours(db, { userId: uid, moduleId: mid, hours: h, workDate: day(days), note,
     logger: byAdmin ? admin : { id: uid, role: 'learner' }, when: ago(days, -8) });
   const completeModule = (uid, mid, days, opts = {}) => {
     study(uid, mid, days + 1);
     quiz(uid, 'module', mid, opts.wrong || 0, ago(days, 2));
-    signAll(uid, mid, days, opts.note || 'Meets checklist.');
     hours(uid, mid, C.modulesById[mid].hours, days, 'Module ' + C.modulesById[mid].number + ' classroom + bench time');
   };
 
@@ -80,24 +76,19 @@ function seedProgress(db, ids, now) {
   const alex = ids.alex;
   completeModule(alex, 'm1', 30); completeModule(alex, 'm2', 29);
   quiz(alex, 'module', 'm3', 1, ago(27)); hours(alex, 'm3', 4, 27, 'Tested out — review only'); // test-out at 80%+
-  signAll(alex, 'm3', 26, 'Worksheet and calculator drills complete.');
   study(alex, 'm4', 25); quiz(alex, 'module', 'm4', 0, ago(24));
-  sign(alex, 'm4-pa1', 'fail', 24, 'Measured current with leads in the voltage jack on one reading — repeat.');
-  C.modulesById.m4.checkoffs.forEach((c) => sign(alex, c.id, 'pass', 22, 'All 10 measurements within tolerance.'));
   hours(alex, 'm4', 10, 23, 'DMM/PSU bench');
   completeModule(alex, 'm5', 16, { wrong: 1 });
   study(alex, 'm6', 6); quiz(alex, 'module', 'm6', 2, ago(5, 4)); quiz(alex, 'module', 'm6', 1, ago(3, 2));
-  sign(alex, 'm6-lab1', 'pass', 3, 'Mesh/nodal predictions within 2%.'); sign(alex, 'm6-lab2', 'pass', 2, 'Bridge balanced.');
   hours(alex, 'm6', 12, 4, 'Network analysis labs'); hours(alex, 'm6', 4, 2, 'Bridge lab');
   P.markStudied(db, alex, lessons('m15')[0], ago(1, 5));
-  sign(alex, 'm15-lab1', 'pass', 1, 'Iron tinning and temperature check done correctly.'); hours(alex, 'm15', 6, 1, 'Soldering bench intro', true);
+  hours(alex, 'm15', 6, 1, 'Soldering bench intro', true);
 
-  // Sam — new hire: failed the safety quiz once (100% required), passed the retake this week; ESD done.
+  // Sam — new hire: failed the safety quiz once (100% required), passed the retake this week (M1 complete);
+// ESD lessons studied but the M2 written test not taken yet, so Level 0 is partial.
   const sam = ids.sam;
   study(sam, 'm1', 7); quiz(sam, 'module', 'm1', 1, ago(6, 1)); quiz(sam, 'module', 'm1', 0, ago(4, 2));
-  C.modulesById.m1.checkoffs.slice(0, 3).forEach((c) => sign(sam, c.id, 'pass', 3, 'Walkthrough complete.'));
-  sign(sam, 'm1-pa1', 'fail', 3, 'Skipped the verify-zero-energy step — retrain and repeat.');
-  study(sam, 'm2', 3); quiz(sam, 'module', 'm2', 0, ago(2, 3)); signAll(sam, 'm2', 2, 'Wrist strap and mat checks logged.');
+  study(sam, 'm2', 3); // ESD lessons studied; the M2 written test is still to take
   quiz(sam, 'module', 'm3', 3, ago(1, 2)); // test-out attempt below 80% (study skipped)
   hours(sam, 'm1', 8, 4, 'Safety orientation'); hours(sam, 'm2', 4, 2, 'ESD'); hours(sam, 'm3', 3, 1, 'Math refresher');
 
@@ -109,7 +100,7 @@ function seedProgress(db, ids, now) {
   quiz(morgan, 'lesson', lessons('m5')[1], 0, ago(1, 1));
   hours(morgan, 'm5', 6, 3, 'Ohm’s law labs'); hours(morgan, 'm5', 5, 1, 'Series/parallel');
 
-  // Priya — safety quiz passed but practical sign-offs outstanding; nothing this week.
+  // Priya — Module 1 safety quiz passed, Module 2 ESD not yet (Level 0 partial); nothing this week.
   const priya = ids.priya;
   study(priya, 'm1', 20); quiz(priya, 'module', 'm1', 0, ago(18));
   P.markStudied(db, priya, lessons('m3')[0], ago(15)); P.markStudied(db, priya, lessons('m3')[1], ago(14));

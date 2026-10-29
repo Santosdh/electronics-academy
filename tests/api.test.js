@@ -40,7 +40,9 @@ const ok = (name, cond, extra) => { if (cond) { pass++; console.log('PASS', name
   ok('learner blocked from report', (await learner('GET', '/admin/reports/weekly')).status === 403);
   const prog = (await learner('GET', '/progress')).body;
   ok('seeded Sam: safety partial, M15 locked', prog.summary.safety.status === 'partial' && prog.summary.modules.find((m) => m.id === 'm15').locked, prog.summary.safety);
-  ok('seeded Sam: M1 written passed but awaiting check-offs', prog.summary.modules[0].status === 'awaiting-checkoffs' && !prog.summary.modules[0].complete);
+  ok('seeded Sam: M1 written passed → complete (no check-offs needed); M2 not yet', prog.summary.modules[0].complete && prog.summary.modules[0].status === 'complete' && !prog.summary.modules[1].complete);
+  ok('progress no longer exposes check-offs', !('checkoffs' in prog) && !('checkoffs' in prog.summary.modules[0]) && !('checkoffsRequired' in prog.summary) && !('modulesAwaitingCheckoffs' in prog.summary));
+  ok('curriculum has no check-off or lab items', C.modules.every((m) => !m.checkoffs && !m.labs) && C.advanced.every((m) => !m.checkoffs));
   ok('progress includes 4 phases and 304 h', prog.summary.phases.length === 4 && prog.summary.coreHours === 304);
 
   // Gating: hands-on modules locked until Level 0 complete
@@ -68,7 +70,7 @@ const ok = (name, cond, extra) => { if (cond) { pass++; console.log('PASS', name
   ok('80% passes module test-out', sub.result.passed === true && sub.result.percent === 80, sub.result);
   ok('test-out grants all module lessons', sub.result.grantedLessons.length === C.modulesById.m6.lessons.length);
   const m6 = sub.progress.summary.modules.find((m) => m.id === 'm6');
-  ok('written passed but not complete until check-offs signed', m6.written.passed && !m6.complete && m6.status === 'awaiting-checkoffs');
+  ok('module test-out completes the module and credits its hours', m6.written.passed && m6.complete && m6.status === 'complete' && sub.progress.summary.hoursCredited >= C.modulesById.m6.hours, m6);
 
   // Lesson test-out
   const l7 = C.modulesById.m7.lessons[0];
@@ -97,27 +99,24 @@ const ok = (name, cond, extra) => { if (cond) { pass++; console.log('PASS', name
   answers = {}; st.questionIds.forEach((id, i) => { const q = C.questionsById[id]; answers[id] = i ? q.answer : (q.answer + 1) % 4; });
   sub = (await newbie('POST', `/quiz/${st.sessionId}/submit`, { answers })).body;
   ok('one wrong answer fails the safety test-out', !sub.result.passed && sub.result.percent < 100 && sub.result.grantedLessons.length === 0);
-  ok('check-off for M4 refused before M1 quiz passed (no bench power)', (await admin('POST', `/admin/users/${taylorId}/checkoffs`, { moduleId: 'm4', itemId: 'm4-lab1', status: 'pass', performedOn: '2026-10-20' })).status === 423);
   st = (await newbie('POST', '/quiz/start', { kind: 'module', moduleId: 'm1' })).body;
   answers = {}; st.questionIds.forEach((id) => { answers[id] = C.questionsById[id].answer; });
   sub = (await newbie('POST', `/quiz/${st.sessionId}/submit`, { answers })).body;
   ok('100% passes the safety test', sub.result.passed && sub.result.percent === 100);
-  let m1 = sub.progress.summary.modules[0];
-  ok('M1 not complete until check-offs signed; no hours credited', !m1.complete && sub.progress.summary.hoursCredited === 0);
+  const m1 = sub.progress.summary.modules[0];
+  ok('M1 complete on the written test alone; 8 h credited', m1.complete && m1.completedAt && sub.progress.summary.hoursCredited === 8, m1);
+  ok('Level 0 not cleared until M2 also complete', sub.progress.summary.safety.status === 'partial' && !sub.progress.summary.safety.gateCleared);
+  ok('M15 still locked with only M1 complete', (await newbie('POST', '/quiz/start', { kind: 'module', moduleId: 'm15' })).status === 423);
 
-  // Check-offs (admin-signed)
-  ok('learner cannot sign check-offs', (await newbie('POST', `/admin/users/${taylorId}/checkoffs`, { moduleId: 'm1', itemId: 'm1-lab1', status: 'pass', performedOn: '2026-10-20' })).status === 403);
-  ok('check-off needs pass/fail', (await admin('POST', `/admin/users/${taylorId}/checkoffs`, { moduleId: 'm1', itemId: 'm1-lab1', status: 'ok', performedOn: '2026-10-20' })).status === 400);
-  ok('check-off needs a date', (await admin('POST', `/admin/users/${taylorId}/checkoffs`, { moduleId: 'm1', itemId: 'm1-lab1', status: 'pass', performedOn: 'yesterday' })).status === 400);
-  ok('unknown check-off item 404', (await admin('POST', `/admin/users/${taylorId}/checkoffs`, { moduleId: 'm1', itemId: 'm1-lab99', status: 'pass', performedOn: '2026-10-20' })).status === 404);
+  // Retired check-off endpoint: 410 for admins, still admin-only
   const adminId = login.body.user.id;
-  ok('admin cannot sign own check-off', (await admin('POST', `/admin/users/${adminId}/checkoffs`, { moduleId: 'm1', itemId: 'm1-lab1', status: 'pass', performedOn: '2026-10-20' })).status === 400);
-  let co = await admin('POST', `/admin/users/${taylorId}/checkoffs`, { moduleId: 'm1', itemId: 'm1-pa1', status: 'fail', performedOn: '2026-10-20', note: 'Missed verify step' });
-  ok('fail sign-off recorded with signer + note', co.status === 201 && co.body.progress.checkoffs[0].status === 'fail' && co.body.progress.checkoffs[0].signerName === DEMO.admin.name && co.body.progress.checkoffs[0].note === 'Missed verify step');
-  for (const c of C.modulesById.m1.checkoffs) co = await admin('POST', `/admin/users/${taylorId}/checkoffs`, { moduleId: 'm1', itemId: c.id, status: 'pass', performedOn: '2026-10-21' });
-  m1 = co.body.progress.summary.modules[0];
-  ok('M1 complete after written + all check-offs; 8 h credited', m1.complete && co.body.progress.summary.hoursCredited === 8, m1);
-  ok('Level 0 not cleared until M2 also complete', co.body.progress.summary.safety.status === 'partial');
+  const gone = await admin('POST', `/admin/users/${taylorId}/checkoffs`, { moduleId: 'm1', itemId: 'm1-lab1', status: 'pass', performedOn: '2026-10-20' });
+  ok('check-off endpoint retired (410)', gone.status === 410 && /removed/i.test(gone.body.error));
+  ok('learner still blocked from the retired endpoint', (await newbie('POST', `/admin/users/${taylorId}/checkoffs`, {})).status === 403);
+  // Legacy rows stay in the table but no longer affect anything
+  db.prepare("INSERT INTO checkoffs (user_id,module_id,item_id,status,performed_on,note,signed_by,signer_name,signed_at) VALUES (?,?,?,?,?,?,?,?,datetime('now'))").run(taylorId, 'm2', 'm2-lab1', 'fail', '2026-10-01', 'legacy', adminId, 'Legacy Admin');
+  const tp = (await newbie('GET', '/progress')).body;
+  ok('legacy check-off rows kept but ignored', db.prepare('SELECT COUNT(*) c FROM checkoffs WHERE user_id=?').get(taylorId).c === 1 && tp.summary.modules[0].complete && !('checkoffs' in tp));
 
   // Hours
   let hr = await newbie('POST', '/hours', { moduleId: 'm3', hours: 2.5, workDate: '2026-10-21', note: 'Notation drills' });
@@ -127,12 +126,14 @@ const ok = (name, cond, extra) => { if (cond) { pass++; console.log('PASS', name
   hr = await admin('POST', `/admin/users/${taylorId}/hours`, { moduleId: 'm1', hours: 8, workDate: '2026-10-20', note: 'Classroom' });
   ok('admin logs hours for learner', hr.status === 201 && hr.body.progress.summary.loggedHours === 10.5);
   const adminHour = hr.body.progress.hours.find((h) => h.loggerRole === 'admin');
-  ok('learner cannot delete instructor-logged hours', (await newbie('DELETE', '/hours/' + adminHour.id)).status === 403);
+  ok('learner cannot delete admin-logged hours', (await newbie('DELETE', '/hours/' + adminHour.id)).status === 403);
 
-  // Unlock Sam's hands-on modules by signing the failed LOTO practical, then try the defect exercise
-  const samUser = users.body.users.find((u) => u.email === 'sam.chen@example.com');
-  co = await admin('POST', `/admin/users/${samUser.id}/checkoffs`, { moduleId: 'm1', itemId: 'm1-pa1', status: 'pass', performedOn: '2026-10-22', note: 'Repeated correctly' });
-  ok('latest sign-off wins: Sam clears Level 0', co.body.progress.summary.safety.gateCleared === true);
+  // Sam passes the M2 (ESD) written test at 100% → Level 0 cleared → hands-on modules unlock; then the defect exercise
+  st = (await learner('POST', '/quiz/start', { kind: 'module', moduleId: 'm2' })).body;
+  ok('M2 test at 100% (lessons studied → normal mode)', st.passPercent === 100 && st.mode === 'test');
+  answers = {}; st.questionIds.forEach((id) => { answers[id] = C.questionsById[id].answer; });
+  sub = (await learner('POST', `/quiz/${st.sessionId}/submit`, { answers })).body;
+  ok('passing M2 clears Level 0 with no sign-offs', sub.progress.summary.safety.gateCleared === true && sub.progress.summary.safety.status === 'cleared' && !sub.progress.summary.modules.find((m) => m.id === 'm15').locked);
   st = await learner('POST', '/quiz/start', { kind: 'defect-practice' });
   ok('defect board issued without answers', st.status === 200 && st.body.board.locations.length === 12 && !JSON.stringify(st.body.board.locations).includes('"condition"'));
   answers = {}; st.body.board.locations.forEach((l) => { answers[l.id] = 'good'; });
@@ -143,13 +144,14 @@ const ok = (name, cond, extra) => { if (cond) { pass++; console.log('PASS', name
   // Drill-down + report
   const sam = users.body.users.find((u) => u.email === 'sam.chen@example.com');
   const dd = await admin('GET', '/admin/users/' + sam.id);
-  ok('admin drill-down', dd.status === 200 && dd.body.progress.attempts.length >= 3 && dd.body.progress.checkoffs.length > 0);
+  ok('admin drill-down', dd.status === 200 && dd.body.progress.attempts.length >= 3 && !('checkoffs' in dd.body.progress));
   const rj = await admin('GET', '/admin/reports/weekly?format=json');
   ok('report JSON', rj.status === 200 && rj.body.team.memberCount === 5 && rj.body.team.pendingInvites.length === 1 && rj.body.members.length === 5);
-  ok('report has phases, hours, safety, check-offs', rj.body.team.phases.length === 4 && rj.body.program.coreHours === 304 && rj.body.team.safety.members.length === 5 && rj.body.team.checkoffsThisWeek.signed >= 5);
+  ok('report has phases, hours, safety, completions; no check-offs', rj.body.team.phases.length === 4 && rj.body.program.coreHours === 304 && rj.body.team.safety.members.length === 5 &&
+    rj.body.team.modulesCompletedThisWeek >= 1 && !('checkoffsThisWeek' in rj.body.team) && !/checkoff/i.test(JSON.stringify(rj.body)), rj.body.team);
   ok('report flags ahead and behind', rj.body.team.ahead.some((m) => m.name === 'Alex Rivera') && rj.body.team.behind.some((m) => m.name === 'Priya Patel'));
   const rh = await admin('GET', '/admin/reports/weekly?format=html');
-  ok('report HTML', rh.status === 200 && /Weekly Team Report/.test(rh.body) && /Safety status/.test(rh.body) && /Check-offs signed this week/.test(rh.body) && !/<script/i.test(rh.body) && !/<link/i.test(rh.body));
+  ok('report HTML', rh.status === 200 && /Weekly Team Report/.test(rh.body) && /Safety status/.test(rh.body) && /Modules completed \(week\)/.test(rh.body) && !/check-off|sign-off|instructor/i.test(rh.body) && !/<script/i.test(rh.body) && !/<link/i.test(rh.body));
   const both = await admin('GET', '/admin/reports/weekly?format=both');
   ok('report both', both.body.report && typeof both.body.html === 'string');
 

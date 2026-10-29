@@ -71,7 +71,7 @@ function loop(){ctx.globalCompositeOperation='destination-out';ctx.fillStyle='rg
  if(parts.length)raf=requestAnimationFrame(loop);else{ctx.clearRect(0,0,innerWidth,innerHeight);raf=0}}
 function fireworks(n=6){for(let i=0;i<n;i++)setTimeout(rocket,i*380);if(!raf)loop();setTimeout(()=>{if(!raf)loop()},50)}
 function layer(html,ms=4000){const d=document.createElement('div');d.className='fx-layer';d.style.setProperty('--c',col());d.innerHTML=html;document.body.appendChild(d);setTimeout(()=>d.remove(),ms);return d}
-function banner(){const m=mod();layer(`<div class="banner"><small>// MODULE COMPLETE</small><b>${m.id} UNLOCKED</b><em>${m.name} · written test ✓ · check-offs ✓</em></div>`)}
+function banner(){const m=mod();layer(`<div class="banner"><small>// MODULE COMPLETE</small><b>${m.id} UNLOCKED</b><em>${m.name} · written test ✓ · hours credited ✓</em></div>`)}
 function circuit(){const W=innerWidth,H=innerHeight,cx=W/2,cy=H/2;const ps=[[0,H*.2,cx-200,H*.2,cx-200,cy,cx-90,cy],[W,H*.8,cx+220,H*.8,cx+220,cy,cx+90,cy],[W*.3,0,W*.3,cy-160,cx,cy-160,cx,cy-90],[W*.7,H,W*.7,cy+170,cx,cy+170,cx,cy+90]];
  const d=ps.map(p=>`M${p[0]} ${p[1]} L${p[2]} ${p[3]} L${p[4]} ${p[5]} L${p[6]} ${p[7]}`).map(x=>`<path d="${x}"/>`).join('');const dots=ps.map(p=>`<circle cx="${p[2]}" cy="${p[3]}" r="5"/><circle cx="${p[4]}" cy="${p[5]}" r="5"/>`).join('');
  const m=mod();layer(`<div class="fade-all" style="position:absolute;inset:0;display:grid;place-items:center"><svg class="traces">${d}${dots}</svg><div class="chip"><span>${m.id}</span><i>ONLINE</i></div></div>`)}

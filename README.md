@@ -3,19 +3,18 @@
 A team training app for electronics technicians, built from the program in `/workspace/electronics-curriculum`.
 
 * **4 phases · 20 core modules · 304 core hours** (Foundations 34 h · Circuit Theory & Devices 146 h · Hands-On Workmanship 88 h ·
-  Troubleshooting & Capstone 36 h). Every module shows its objectives, topics, labs and assessment from the curriculum doc.
-* **Level 0 gate**: Modules 1 (Safety) and 2 (ESD) need **100%** on the written test (test-out also only at 100%) plus their
-  check-offs. Modules 15–20 stay locked until Level 0 is complete.
-* **Module completion = written test passed AND every practical check-off signed (pass)** by an instructor (admin).
-  Check-offs record date performed, signer, result (pass/fail) and a note; the latest signature per item counts.
-* **Hours tracking** per module (learner self-log or instructor log), compared with the planned hours.
+  Troubleshooting & Capstone 36 h). Every module shows its objectives, topics and written test from the curriculum doc.
+* **Level 0 gate**: Modules 1 (Safety) and 2 (ESD) need **100%** on the written test (test-out also only at 100%). Modules 15–20 stay locked until Level 0 is complete.
+* **Module completion = written test passed (or tested out).** Everything is self-checked: lessons, quizzes, the simulator
+  and the simulator exercises. There are no practical items for an admin to sign off (removed Oct 2026, see below).
+* **Hours tracking** per module (learner self-log or admin log), compared with the planned hours.
 * **Optional advanced track** (A1–A9) shown separately; it is **not** part of the 304 core hours. Power supplies stay in core (M11).
 * **Seeded-defect inspection exercise** (M17 practice): a virtual board with randomised defects to classify.
 * **Circuit simulator** – DC (nodal analysis) plus AC/transient: function generator (sine/square/triangle), capacitors,
   inductors, diodes and a 2-channel scope with Vpp/Vrms/avg/frequency/phase. Linked from M8 (AC & scope), M9 (RC/RL) and
   M11 (rectifiers). Phone layouts (portrait and landscape) supported.
 * **Accounts & roles**, team dashboard with per-person drill-down, invites, and a **weekly team report** (HTML + JSON) with
-  phase, hours, check-offs and Level 0 safety status. The app never sends email.
+  phase, hours, modules completed and Level 0 safety status. The app never sends email.
 
 ## Run it
 
@@ -41,20 +40,29 @@ node scripts/create-admin.js ...       # create an admin account
 
 Opening an existing v1 database migrates it automatically (`PRAGMA user_version`): all accounts, roles, passwords and sessions
 are kept; v1 lesson completions whose lessons still exist are carried over; old quiz attempts are kept as legacy history.
-New tables: `checkoffs` and `hour_logs`. Back up `data/academy.db` before upgrading.
+New tables: `checkoffs` (legacy, unused since Oct 2026) and `hour_logs`. Back up `data/academy.db` before upgrading.
 Schema v3 (the guide) adds only a `guide_state` table (one row per user, deleted with the user). The v2 → v3 upgrade happens on
-start and leaves existing users, passwords, progress, check-offs and hours untouched.
+start and leaves existing users, passwords, progress and hours untouched.
 Schema v4 adds only one column, `guide_state.fx_enabled` (default 1 = on), for the "Lightning effects" switch. The v3 → v4
 upgrade also happens on start and changes no existing data.
+
+### Practical sign-offs removed (Oct 2026)
+
+The instructor/admin practical sign-off items (labs and practical assessments; 70 items across the 20 core modules) were
+removed from the curriculum data, learner pages, admin pages, the API and the weekly report. A module is now complete as
+soon as its written test is passed or tested out. Completion is computed when it is read, so **no migration was needed**:
+existing learners whose written tests were already passed show those modules as complete straight away. The `checkoffs`
+table is kept with its rows (nothing is deleted) but the app no longer reads or writes it, and the old
+`POST /api/admin/users/:id/checkoffs` endpoint now answers `410 Gone`.
 
 ## Volt, the guide companion
 
 A small animated helper sits in the bottom-right corner of every signed-in page (`public/js/guide.js`, `public/css/guide.css`).
 
 - **Dashboard:** recommends the next module. Level 0 (M1 + M2 at 100%) comes first. It respects locks, offers a test-out when
-  lessons are not all studied, and says when a module is only waiting on instructor check-offs or needs a failed one redone.
+  lessons are not all studied.
 - **Module page:** what the module covers, a ✅/⬜ checklist of what completes it (written test at the module's pass mark,
-  practical check-offs, planned hours), a tip, a common mistake, and a link to a matching simulator challenge.
+  planned hours), a tip, a common mistake, and a link to a matching simulator challenge.
 - **Quiz:** encouragement. A wrong answer adds a link to the lesson that covers the question (it opens in a new tab).
   The result lists the lessons to review.
 - **Simulator:** a challenge tied to the current module and preset.
@@ -93,11 +101,11 @@ Wrapping the modules as `{ "modules": { … } }` also works. `summary` / `introd
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin / instructor (signs check-offs) | `admin@example.com` | `AdminDemo!2026` |
-| Learner – Level 0 cleared, M6 awaiting 1 check-off, M15 started | `alex.rivera@example.com` | `LearnerDemo!2026` |
-| Learner – M1 check-off failed, so Level 0 not cleared (M15–M20 locked) | `sam.chen@example.com` | `LearnerDemo!2026` |
+| Admin (team, hours, invites, reports) | `admin@example.com` | `AdminDemo!2026` |
+| Learner – Level 0 cleared, Phase 1 done, Phase 2 under way | `alex.rivera@example.com` | `LearnerDemo!2026` |
+| Learner – M1 passed, M2 written test not taken, so Level 0 partial (M15–M20 locked) | `sam.chen@example.com` | `LearnerDemo!2026` |
 | Learner – Phase 1 complete | `morgan.lee@example.com` | `LearnerDemo!2026` |
-| Learner – M1 written passed, check-offs outstanding | `priya.patel@example.com` | `LearnerDemo!2026` |
+| Learner – M1 written passed, M2 not yet (Level 0 partial) | `priya.patel@example.com` | `LearnerDemo!2026` |
 | Invited, not yet accepted | `jordan.kim@example.com` | — (invite link printed by `npm run seed`) |
 **Change or remove these before using the app with real people.** Demo accounts are never created when `NO_DEMO=1`, and
 `scripts/seed.js` refuses to run when `NODE_ENV=production` or `NO_DEMO=1`, as on Render.
@@ -172,9 +180,9 @@ node scripts/weekly-report.js --end 2026-10-28 --tz America/Chicago --out report
 npm run report                                                  # → reports/weekly-report.html
 ```
 
-Covers the 7 days ending at `--end`: team summary (learners, active, average completion, hours this week, check-offs signed),
-**Level 0 safety status** per learner, phase progress, leaderboard, a log of check-offs signed this week, and one section per learner
-(current phase/module, hours logged vs planned, written results, check-offs signed/pending/failed, modules awaiting check-offs).
+Covers the 7 days ending at `--end`: team summary (learners, active, average completion, hours this week, modules completed),
+**Level 0 safety status** per learner, phase progress, leaderboard, modules completed this week, and one section per learner
+(current phase/module, hours logged vs planned, written results).
 Email-safe HTML (tables + inline styles). Admins can also use `GET /api/admin/reports/weekly?format=html|json|both&end=&tz=`
 or **Team → Weekly report**. Nothing is emailed.
 
@@ -186,13 +194,12 @@ Learner: `GET /api/me` · `GET /api/progress` · `POST|DELETE /api/lessons/:id/c
 `POST /api/hours {moduleId, hours, workDate, note}` · `DELETE /api/hours/:id`
 Admin: `GET /api/admin/users` · `GET /api/admin/users/:id` · `POST /api/admin/users` · `POST /api/admin/users/:id/invite` ·
 `POST /api/admin/users/:id/reset-password` ·
-`POST /api/admin/users/:id/checkoffs {moduleId, itemId, status: pass|fail, performedOn, note}` ·
 `POST /api/admin/users/:id/hours` · `GET /api/admin/reports/weekly`
 Guide: `GET /api/guide` returns `{state, lines, linesSource}`. `PUT /api/guide {collapsed?, dismissed?, tourDone?, milestones?}`
 returns `{state}`.
 
 Grading happens on the server; each quiz session accepts one submission. A module test with not all lessons studied counts as a
-test-out (pass mark per module; 100% for M1/M2). Check-offs for a module can only be signed once its prerequisites allow it.
+test-out (pass mark per module; 100% for M1/M2).
 
 ## Effects
 
@@ -244,7 +251,7 @@ a throwaway database and write their PNG and MP4 files to `screenshots/`. Video 
 ## Layout
 
 ```
-server/   app.js (REST API + static), db.js (schema + migration), progress.js (gating, grading, check-offs, hours),
+server/   app.js (REST API + static), db.js (schema + migration), progress.js (gating, grading, completion, hours),
           report.js (weekly report), curriculum.js (loads the browser's curriculum files), auth.js, guide.js (guide state + lines)
 public/   index.html, css/styles.css, css/cyberpunk.css (theme), css/guide.css, css/volt-fx.css, css/celebrate.css, js/app.js (router + views), js/content/ (program.js + module content),
           js/circuit-solver.js (DC MNA + backward-Euler transient), js/simulator.js, js/defects.js, js/tools.js, js/guide.js (companion),
